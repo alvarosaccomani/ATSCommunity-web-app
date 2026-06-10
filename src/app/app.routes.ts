@@ -9,6 +9,10 @@ export const routes: Routes = [
       path: 'user',
       loadChildren: () => import('./user/user.routes').then(m => m.USER_ROUTES),
   },
+  {
+      path: 'application',
+      loadChildren: () => import('./application/application.routes').then(m => m.APPLICATION_ROUTES),
+  },
   { path: '', pathMatch: 'full', redirectTo: '/welcome' },
   { path: 'welcome', loadChildren: () => import('./pages/welcome/welcome.routes').then(m => m.WELCOME_ROUTES) },
   { path: '**', redirectTo: 'public/home' }
