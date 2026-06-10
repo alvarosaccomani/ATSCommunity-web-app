@@ -1,0 +1,20 @@
+export interface UserInterface {
+  usr_uuid: string | null,
+  usr_name: string | null,
+  usr_surname: string | null,
+  usr_password: string | null,
+  usr_image: string | null,
+  usr_email: string | null,
+  usr_nick: string | null,
+  usr_bio: string | null,
+  usr_registered: Date | null,
+  usr_socket: string | null,
+  usr_online: boolean | null,
+  usr_confirmed: boolean | null,
+  usr_confirmationtoken: string | null,
+  usr_resetpasswordtoken: string | null,
+  usr_resetpasswordexpires: Date | null,
+  usr_sysadmin: boolean | null,
+  usr_createdat: Date | null,
+  usr_updatedat: Date | null
+}
