@@ -35,6 +35,11 @@ export class SessionService {
     return this.sessionSubject.value;
   }
 
+  public logout(): void {
+    localStorage.removeItem('session');
+    this.sessionSubject.next(null);
+  }
+
   private updateSession(session: SessionData): void {
     localStorage.setItem('session', JSON.stringify(session));
     this.sessionSubject.next(session);
