@@ -1,1 +1,45 @@
-<p>login works!</p>
+<div class="login-container">
+  <div class="login-card">
+    <div class="login-header">
+      <div class="logo">
+        <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo" />
+      </div>
+      <h2>Bienvenido de nuevo</h2>
+      <p>Ingresa tus credenciales para acceder a ATS Community</p>
+    </div>
+
+    <form nz-form [formGroup]="loginForm" (ngSubmit)="submitForm()" class="login-form">
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Por favor, ingresa tu usuario o correo electrónico (mínimo 3 caracteres)">
+          <nz-input-group [nzPrefix]="prefixUser" nzSize="large">
+            <input type="text" nz-input formControlName="usr_user" placeholder="Usuario o Correo electrónico" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Por favor, ingresa tu contraseña (mínimo 6 caracteres)">
+          <nz-input-group [nzPrefix]="prefixLock" nzSize="large">
+            <input type="password" nz-input formControlName="usr_password" placeholder="Contraseña" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <div class="form-actions">
+        <label nz-checkbox formControlName="remember" class="remember-me">Recuérdame</label>
+        <a class="forgot-link">¿Olvidaste tu contraseña?</a>
+      </div>
+
+      <button nz-button nzType="primary" nzSize="large" [nzLoading]="isLoading" class="login-btn">
+        Iniciar Sesión
+      </button>
+
+      <div class="register-redirect">
+        ¿No tienes cuenta? <a routerLink="/auth/register">Regístrate aquí</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<ng-template #prefixUser><nz-icon nzType="user" /></ng-template>
+<ng-template #prefixLock><nz-icon nzType="lock" /></ng-template>
