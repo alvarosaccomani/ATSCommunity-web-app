@@ -1,1 +1,72 @@
-<p>register works!</p>
+<div class="register-container">
+  <div class="register-card">
+    <div class="register-header">
+      <div class="logo">
+        <img src="https://ng.ant.design/assets/img/logo.svg" alt="logo" />
+      </div>
+      <h2>Crear una cuenta</h2>
+      <p>Completa el formulario para registrarte en ATS Community</p>
+    </div>
+
+    <form nz-form [formGroup]="registerForm" (ngSubmit)="submitForm()" class="register-form">
+      <div class="name-row">
+        <div class="name-col">
+          <nz-form-item>
+            <nz-form-control nzErrorTip="Nombre requerido (mínimo 2 letras)">
+              <nz-input-group [nzPrefix]="prefixName" nzSize="large">
+                <input type="text" nz-input formControlName="usr_name" placeholder="Nombre" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+
+        <div class="name-col">
+          <nz-form-item>
+            <nz-form-control nzErrorTip="Apellido requerido (mínimo 2 letras)">
+              <nz-input-group [nzPrefix]="prefixName" nzSize="large">
+                <input type="text" nz-input formControlName="usr_surname" placeholder="Apellido" />
+              </nz-input-group>
+            </nz-form-control>
+          </nz-form-item>
+        </div>
+      </div>
+
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Nombre de usuario requerido (mínimo 3 caracteres)">
+          <nz-input-group [nzPrefix]="prefixUser" nzSize="large">
+            <input type="text" nz-input formControlName="usr_nick" placeholder="Nombre de usuario (Nick)" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Ingresa un correo electrónico válido">
+          <nz-input-group [nzPrefix]="prefixMail" nzSize="large">
+            <input type="email" nz-input formControlName="usr_email" placeholder="Correo electrónico" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-control nzErrorTip="Ingresa tu contraseña (mínimo 6 caracteres)">
+          <nz-input-group [nzPrefix]="prefixLock" nzSize="large">
+            <input type="password" nz-input formControlName="usr_password" placeholder="Contraseña" />
+          </nz-input-group>
+        </nz-form-control>
+      </nz-form-item>
+
+      <button nz-button nzType="primary" nzSize="large" [nzLoading]="isLoading" class="register-btn">
+        Registrarse
+      </button>
+
+      <div class="login-redirect">
+        ¿Ya tienes cuenta? <a routerLink="/auth/login">Inicia sesión aquí</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<ng-template #prefixName><nz-icon nzType="user" /></ng-template>
+<ng-template #prefixUser><nz-icon nzType="tag" /></ng-template>
+<ng-template #prefixMail><nz-icon nzType="mail" /></ng-template>
+<ng-template #prefixLock><nz-icon nzType="lock" /></ng-template>

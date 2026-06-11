@@ -1,0 +1,188 @@
+.register-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100%;
+  background: radial-gradient(circle at 10% 20%, rgba(90, 92, 234, 1) 0%, rgba(32, 45, 125, 1) 90%);
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+  padding: 20px;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.register-card {
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  color: #ffffff;
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+}
+
+.register-header {
+  text-align: center;
+  margin-bottom: 30px;
+
+  .logo {
+    display: inline-block;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    margin-bottom: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: transform 0.5s ease;
+
+    img {
+      height: 42px;
+      width: 42px;
+    }
+
+    &:hover {
+      transform: rotate(360deg) scale(1.1);
+    }
+  }
+
+  h2 {
+    color: #ffffff;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin: 5px 0;
+    letter-spacing: -0.5px;
+  }
+
+  p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.9rem;
+    margin: 0;
+  }
+}
+
+.register-form {
+  .name-row {
+    display: flex;
+    gap: 15px;
+    width: 100%;
+
+    .name-col {
+      flex: 1;
+    }
+  }
+
+  ::ng-deep {
+    .ant-form-item {
+      margin-bottom: 20px;
+    }
+
+    .ant-input-affix-wrapper {
+      background: rgba(255, 255, 255, 0.15) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+      border-radius: 10px !important;
+      padding: 10px 15px !important;
+      color: #ffffff !important;
+      transition: all 0.3s ease;
+
+      .ant-input {
+        background: transparent !important;
+        color: #ffffff !important;
+        font-size: 0.95rem;
+
+        &::placeholder {
+          color: rgba(255, 255, 255, 0.6) !important;
+        }
+      }
+
+      .anticon {
+        color: rgba(255, 255, 255, 0.7) !important;
+      }
+
+      &-focused, &:hover {
+        border-color: rgba(255, 255, 255, 0.7) !important;
+        box-shadow: 0 0 8px rgba(255, 255, 255, 0.2) !important;
+      }
+    }
+
+    .ant-form-item-explain-error {
+      color: #ff4d4f !important;
+      font-size: 0.8rem;
+      margin-top: 5px;
+    }
+  }
+}
+
+.register-btn {
+  width: 100%;
+  height: 48px;
+  background: #ffffff !important;
+  border: none !important;
+  border-radius: 10px !important;
+  color: #202d7d !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15) !important;
+  margin-top: 10px;
+  transition: all 0.3s ease !important;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+}
+
+.login-redirect {
+  text-align: center;
+  margin-top: 25px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.7);
+
+  a {
+    color: #ffffff;
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 30px 20px;
+    border-radius: 15px;
+  }
+
+  .register-header h2 {
+    font-size: 1.5rem;
+  }
+
+  .register-form .name-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
