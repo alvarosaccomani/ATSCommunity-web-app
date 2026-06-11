@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { UsersService } from '../../core/services/users.service';
+import { SessionService } from '../../core/services/session.service';
 import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -34,6 +35,7 @@ export class LoginComponent {
   constructor(
     private fb: FormBuilder,
     private usersService: UsersService,
+    private _sessionService: SessionService,
     private router: Router,
     private message: NzMessageService
   ) {
@@ -59,11 +61,12 @@ export class LoginComponent {
           this.isLoading = false;
           if (res.success && res.data && res.data.token) {
             this.message.success('Inicio de sesión exitoso');
-            // Guardamos el token en localStorage
-            localStorage.setItem('token', res.data.token);
-            // Si el backend retorna datos del usuario los guardamos
+            // Guardamos el token e identidad usando SessionService
+            this._sessionService.setToken(res.data.token);
             if (res.data.user) {
-              localStorage.setItem('user', JSON.stringify(res.data.user));
+              this._sessionService.setIdentity(res.data.user);
+            } else {
+              this._sessionService.setIdentity(res.data);
             }
             // Redirigir a welcome
             this.router.navigate(['/welcome']);
