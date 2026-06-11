@@ -1,15 +1,35 @@
 import { Component } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
+import { CommonModule } from '@angular/common';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterLink, RouterOutlet, NzIconModule, NzLayoutModule, NzMenuModule],
+  imports: [
+    CommonModule, 
+    RouterLink, 
+    RouterOutlet, 
+    NzIconModule, 
+    NzLayoutModule, 
+    NzMenuModule
+  ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
   isCollapsed = false;
+  isAuthRoute = false;
+
+  constructor(private router: Router) {
+    this.isAuthRoute = window.location.pathname.startsWith('/auth');
+    this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd)
+    ).subscribe((event: any) => {
+      this.isAuthRoute = event.urlAfterRedirects.startsWith('/auth') || event.url.startsWith('/auth');
+    });
+  }
 }
+
