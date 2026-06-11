@@ -46,6 +46,12 @@
           <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
             <nz-icon class="trigger" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
           </span>
+          <div class="header-right">
+            <button nz-button nzType="text" class="logout-btn" (click)="logout()">
+              <nz-icon nzType="logout" />
+              <span>Cerrar Sesión</span>
+            </button>
+          </div>
         </div>
       </nz-header>
       <nz-content>

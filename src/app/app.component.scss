@@ -17,11 +17,13 @@
 }
 
 .header-trigger {
+  display: inline-flex;
+  align-items: center;
   height: 64px;
-  padding: 20px 24px;
+  padding: 0 24px;
   font-size: 20px;
   cursor: pointer;
-  transition: all .3s,padding 0s;
+  transition: all .3s;
 }
 
 .trigger:hover {
@@ -62,12 +64,44 @@ nz-header {
 }
 
 .app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   position: relative;
   height: 64px;
-  padding: 0;
+  padding: 0 24px 0 0;
   background: #fff;
   box-shadow: 0 1px 4px rgba(0,21,41,.08);
 }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  height: 64px;
+}
+
+.logout-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 16px;
+  gap: 8px;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+
+  &:hover {
+    color: #ff4d4f !important;
+    background: rgba(255, 77, 79, 0.05) !important;
+  }
+}
+
+
 
 nz-content {
   margin: 24px;
