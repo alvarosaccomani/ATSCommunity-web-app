@@ -1,1 +1,218 @@
-<p>fees works!</p>
+<div class="fees-container">
+  <div class="fees-header">
+    <div class="header-title">
+      <h1>Expensas y Cuotas</h1>
+      <p>Administración general de expensas de las unidades funcionales del consorcio</p>
+    </div>
+    <div class="header-actions">
+      <button nz-button nzType="primary" (click)="showCreateModal()">
+        <span nz-icon nzType="plus"></span>Nueva Expensa
+      </button>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros -->
+  <div class="filters-panel">
+    <div class="filter-item">
+      <label>Estado</label>
+      <nz-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Filtrar por Estado" nzAllowClear>
+        <nz-option nzValue="Pendiente" nzLabel="Pendiente"></nz-option>
+        <nz-option nzValue="Pagada" nzLabel="Pagada"></nz-option>
+        <nz-option nzValue="Vencida" nzLabel="Vencida"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-item">
+      <label>Unidad</label>
+      <nz-select [(ngModel)]="unitFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Filtrar por Unidad" nzShowSearch nzAllowClear>
+        <nz-option *ngFor="let u of units" [nzValue]="u.uni_uuid" [nzLabel]="u.uni_code + ' - ' + u.uni_category"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-item">
+      <label>Período</label>
+      <nz-date-picker [(ngModel)]="periodFilter" (ngModelChange)="applyFilters()" nzMode="month" nzPlaceHolder="Filtrar por Período" nzFormat="yyyy-MM" nzAllowClear></nz-date-picker>
+    </div>
+    <div class="filter-actions">
+      <button nz-button nzType="default" (click)="clearFilters()">
+        <span nz-icon nzType="clear"></span>Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Resultados -->
+  <nz-table #feesTable [nzData]="fees" [nzLoading]="isLoading" class="fees-table" [nzPageSize]="10">
+    <thead>
+      <tr>
+        <th>Unidad</th>
+        <th>Habitante</th>
+        <th>Período</th>
+        <th>Monto</th>
+        <th>Vencimiento</th>
+        <th>Estado</th>
+        <th class="actions-header">Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of feesTable.data">
+        <td>
+          <div class="unit-cell">
+            <span class="unit-code">{{ data.unit?.uni_code || 'N/A' }}</span>
+            <span class="unit-cat">{{ data.unit?.uni_category || 'N/A' }}</span>
+          </div>
+        </td>
+        <td>
+          <div class="resident-cell" *ngIf="data.usr; else noUser">
+            <span class="resident-name">{{ data.usr.usr_name }} {{ data.usr.usr_surname }}</span>
+            <span class="resident-email">{{ data.usr.usr_email }}</span>
+          </div>
+          <ng-template #noUser><span class="text-muted">No asignado</span></ng-template>
+        </td>
+        <td>
+          <span class="period-badge">{{ data.fee_period }}</span>
+        </td>
+        <td>
+          <strong class="fee-amount">{{ data.fee_amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </td>
+        <td>{{ data.fee_duedate | date:'dd/MM/yyyy' }}</td>
+        <td>
+          <nz-badge [nzStatus]="getBadgeStatus(data.fee_status)" [nzText]="data.fee_status"></nz-badge>
+        </td>
+        <td class="actions-cell">
+          <div class="actions-group">
+            <button nz-button nzType="text" nzShape="circle" (click)="showEditModal(data)" class="btn-edit" title="Editar Expensa">
+              <span nz-icon nzType="edit"></span>
+            </button>
+            <button nz-button nzType="text" nzDanger nzShape="circle"
+              nz-popconfirm nzPopconfirmTitle="¿Está seguro de eliminar esta expensa?"
+              (nzOnConfirm)="deleteFee(data)" class="btn-delete" title="Eliminar Expensa">
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
+
+<!-- Modal: Nueva Expensa -->
+<nz-modal [(nzVisible)]="isCreateModalVisible" nzTitle="Cargar Nueva Expensa" (nzOnCancel)="closeCreateModal()" (nzOnOk)="saveFee()" [nzOkLoading]="isSaving">
+  <div *nzModalContent>
+    <form nz-form [formGroup]="feeForm" nzLayout="vertical">
+      
+      <!-- Unidad -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Unidad Funcional</nz-form-label>
+        <nz-form-control nzErrorTip="Debe seleccionar una unidad.">
+          <nz-select formControlName="uni_uuid" nzPlaceHolder="Seleccione una unidad..." nzShowSearch>
+            <nz-option *ngFor="let u of units" [nzValue]="u.uni_uuid" [nzLabel]="u.uni_code + ' - ' + u.uni_category"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Habitante -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Habitante Responsable</nz-form-label>
+        <nz-form-control nzErrorTip="Debe seleccionar un habitante.">
+          <nz-select formControlName="usruni_uuid" nzPlaceHolder="Seleccione el habitante responsable..." [nzDisabled]="!feeForm.get('uni_uuid')?.value || isAssignmentsLoading">
+            <nz-option *ngFor="let a of unitAssignments" [nzValue]="a.usruni_uuid" [nzLabel]="a.usr.usr_name + ' ' + a.usr.usr_surname + ' (' + a.usruni_relationtype + ')'"></nz-option>
+          </nz-select>
+          <span class="loading-indicator" *ngIf="isAssignmentsLoading">
+            <span nz-icon nzType="loading"></span> Cargando habitantes...
+          </span>
+          <div *ngIf="feeForm.get('uni_uuid')?.value && unitAssignments.length === 0 && !isAssignmentsLoading" class="warning-text">
+            No se encontraron habitantes activos asignados a esta unidad. Primero debe asignar un habitante a la unidad.
+          </div>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Período -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Período de Facturación</nz-form-label>
+        <nz-form-control nzErrorTip="Debe indicar el período.">
+          <nz-date-picker formControlName="fee_period" nzMode="month" nzFormat="yyyy-MM" nzPlaceHolder="Seleccione período..." class="w-100"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Monto -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Monto a Facturar</nz-form-label>
+        <nz-form-control nzErrorTip="Debe ingresar un monto válido mayor a 0.">
+          <nz-input-number formControlName="fee_amount" [nzMin]="0.01" nzPlaceHolder="Ingresar monto" class="w-100"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Vencimiento -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Fecha de Vencimiento</nz-form-label>
+        <nz-form-control nzErrorTip="Debe indicar la fecha de vencimiento.">
+          <nz-date-picker formControlName="fee_duedate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Seleccione fecha..." class="w-100"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Estado -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Estado Inicial</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="fee_status">
+            <nz-option nzValue="Pendiente" nzLabel="Pendiente"></nz-option>
+            <nz-option nzValue="Pagada" nzLabel="Pagada"></nz-option>
+            <nz-option nzValue="Vencida" nzLabel="Vencida"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </div>
+</nz-modal>
+
+<!-- Modal: Editar Expensa -->
+<nz-modal [(nzVisible)]="isEditModalVisible" nzTitle="Modificar Expensa" (nzOnCancel)="closeEditModal()" (nzOnOk)="updateFee()" [nzOkLoading]="isUpdating">
+  <div *nzModalContent>
+    <div class="edit-fee-summary" *ngIf="selectedFee">
+      <div class="summary-item">
+        <strong>Unidad:</strong> {{ selectedFee.unit?.uni_code }}
+      </div>
+      <div class="summary-item" *ngIf="selectedFee.usr">
+        <strong>Habitante:</strong> {{ selectedFee.usr.usr_name }} {{ selectedFee.usr.usr_surname }}
+      </div>
+    </div>
+    <form nz-form [formGroup]="editForm" nzLayout="vertical">
+      
+      <!-- Período -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Período de Facturación</nz-form-label>
+        <nz-form-control nzErrorTip="Debe indicar el período.">
+          <nz-date-picker formControlName="fee_period" nzMode="month" nzFormat="yyyy-MM" nzPlaceHolder="Seleccione período..." class="w-100"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Monto -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Monto de Expensa</nz-form-label>
+        <nz-form-control nzErrorTip="Debe ingresar un monto válido mayor a 0.">
+          <nz-input-number formControlName="fee_amount" [nzMin]="0.01" nzPlaceHolder="Ingresar monto" class="w-100"></nz-input-number>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Vencimiento -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Fecha de Vencimiento</nz-form-label>
+        <nz-form-control nzErrorTip="Debe indicar la fecha de vencimiento.">
+          <nz-date-picker formControlName="fee_duedate" nzFormat="dd/MM/yyyy" nzPlaceHolder="Seleccione fecha..." class="w-100"></nz-date-picker>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Estado -->
+      <nz-form-item>
+        <nz-form-label nzRequired>Estado de Pago</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="fee_status">
+            <nz-option nzValue="Pendiente" nzLabel="Pendiente"></nz-option>
+            <nz-option nzValue="Pagada" nzLabel="Pagada"></nz-option>
+            <nz-option nzValue="Vencida" nzLabel="Vencida"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </div>
+</nz-modal>

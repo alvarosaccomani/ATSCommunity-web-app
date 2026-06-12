@@ -1,0 +1,251 @@
+.fees-container {
+  padding: 24px;
+  background: #f0f2f5;
+  min-height: 100vh;
+}
+
+.fees-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+
+  .header-title {
+    h1 {
+      font-size: 26px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.85);
+      margin-bottom: 4px;
+    }
+    p {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.45);
+      margin: 0;
+    }
+  }
+
+  .header-actions {
+    button {
+      height: 40px;
+      border-radius: 6px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+}
+
+.filters-panel {
+  background: #ffffff;
+  padding: 20px 24px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  margin-bottom: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-end;
+
+  .filter-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+    min-width: 180px;
+
+    label {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.65);
+    }
+
+    nz-select, nz-date-picker {
+      width: 100%;
+    }
+  }
+
+  .filter-actions {
+    display: flex;
+    align-items: center;
+    height: 40px;
+
+    button {
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  }
+}
+
+.fees-table {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+
+  ::ng-deep {
+    .ant-table-thead > tr > th {
+      background: #fafafa;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.85);
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .ant-table-tbody > tr > td {
+      border-bottom: 1px solid #f0f0f0;
+      padding: 16px;
+    }
+    .ant-table-tbody > tr:hover > td {
+      background: #fcfcfc;
+    }
+  }
+
+  .unit-cell {
+    display: flex;
+    flex-direction: column;
+
+    .unit-code {
+      font-weight: 600;
+      color: #1890ff;
+      font-size: 14px;
+    }
+    .unit-cat {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  .resident-cell {
+    display: flex;
+    flex-direction: column;
+
+    .resident-name {
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.85);
+      font-size: 14px;
+    }
+    .resident-email {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  .period-badge {
+    background: #e6f7ff;
+    color: #1890ff;
+    border: 1px solid #91d5ff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .fee-amount {
+    font-size: 15px;
+    color: #262626;
+  }
+
+  .actions-header {
+    text-align: center;
+  }
+
+  .actions-cell {
+    text-align: center;
+
+    .actions-group {
+      display: inline-flex;
+      gap: 8px;
+
+      button {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        
+        &.btn-edit {
+          color: #1890ff;
+          &:hover {
+            background: #e6f7ff;
+          }
+        }
+        &.btn-delete {
+          &:hover {
+            background: #fff1f0;
+          }
+        }
+      }
+    }
+  }
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.loading-indicator {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #1890ff;
+}
+
+.warning-text {
+  margin-top: 8px;
+  color: #faad14;
+  font-size: 12px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  padding: 8px 12px;
+  border-radius: 4px;
+}
+
+.text-muted {
+  color: rgba(0, 0, 0, 0.45);
+  font-style: italic;
+}
+
+.edit-fee-summary {
+  background: #f5f5f5;
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+  border: 1px solid #d9d9d9;
+
+  .summary-item {
+    strong {
+      color: rgba(0, 0, 0, 0.65);
+    }
+  }
+}
+
+@media (max-width: 768px) {
+  .fees-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    .header-actions {
+      width: 100%;
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  .filters-panel {
+    flex-direction: column;
+    align-items: stretch;
+
+    .filter-actions {
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}
