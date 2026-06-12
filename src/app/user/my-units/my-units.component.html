@@ -1,1 +1,70 @@
-<p>my-units works!</p>
+<div class="my-units-container">
+  <div class="my-units-header">
+    <h2>Mis Unidades</h2>
+    <p>Listado de los departamentos, locales o cocheras vinculados a tu cuenta en esta comunidad.</p>
+  </div>
+
+  <div class="cards-grid" *ngIf="!isLoading && userUnits.length > 0; else noUnits">
+    <div class="unit-card" *ngFor="let item of userUnits">
+      <div class="card-header-bar">
+        <span class="relation-pill" [style.background-color]="getRelationBadgeColor(item.usruni_relationtype)">
+          {{ item.usruni_relationtype }}
+        </span>
+        <span class="status-badge" *ngIf="item.unitDetail">
+          <nz-badge [nzStatus]="getBadgeStatus(item.unitDetail.uni_status)" [nzText]="formatStatus(item.unitDetail.uni_status)"></nz-badge>
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="unit-main">
+          <nz-icon nzType="home" class="unit-icon" />
+          <div class="unit-title-group">
+            <h3>{{ item.unitDetail?.uni_code || 'Unidad sin código' }}</h3>
+            <span class="category-text">{{ item.unitDetail?.uni_category || 'Categoría Desconocida' }}</span>
+          </div>
+        </div>
+
+        <div class="unit-details">
+          <div class="detail-row">
+            <span class="detail-label"><nz-icon nzType="environment" /> Ubicación:</span>
+            <span class="detail-value">{{ item.unitDetail?.uni_locationdetails || 'No especificada' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label"><nz-icon nzType="percentage" /> Coeficiente Expensas:</span>
+            <span class="detail-value">{{ (item.unitDetail?.uni_financialcoefficient || 0) | number:'1.4-4' }}</span>
+          </div>
+          <div class="detail-row" *ngIf="item.unitDetail && item.unitDetail.uni_baseamountcustom && item.unitDetail.uni_baseamountcustom > 0">
+            <span class="detail-label"><nz-icon nzType="dollar" /> Monto Fijo Personalizado:</span>
+            <span class="detail-value">{{ item.unitDetail.uni_baseamountcustom | currency:'USD':'symbol':'1.2-2' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label"><nz-icon nzType="calendar" /> Vigencia de Asignación:</span>
+            <span class="detail-value">Desde: {{ item.usruni_startdate | date:'dd/MM/yyyy' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-actions">
+        <button nz-button nzType="link" routerLink="/application/units">
+          <nz-icon nzType="arrow-right" /> Ver panel de la comunidad
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noUnits>
+    <div class="empty-state" *ngIf="!isLoading">
+      <nz-icon nzType="info-circle" class="empty-icon" />
+      <h3>No tienes unidades asignadas</h3>
+      <p>No se encontraron departamentos, locales ni cocheras vinculados a tu cuenta en esta comunidad.</p>
+      <button nz-button nzType="primary" routerLink="/welcome" class="back-btn">
+        Ir al Panel Principal
+      </button>
+    </div>
+  </ng-template>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <nz-icon nzType="loading" class="spin-icon" />
+    <p>Cargando tus unidades funcionales...</p>
+  </div>
+</div>
