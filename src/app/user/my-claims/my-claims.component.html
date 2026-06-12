@@ -1,1 +1,110 @@
-<p>my-claims works!</p>
+<div class="my-claims-container">
+  <div class="my-claims-header">
+    <div class="header-title">
+      <h2>Mis Reportes</h2>
+      <p>Envía y realiza el seguimiento de tus reclamos, sugerencias y propuestas para la administración.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="showCreateModal()" class="add-btn">
+      <nz-icon nzType="plus" /> Nuevo Reporte
+    </button>
+  </div>
+
+  <div class="cards-grid" *ngIf="!isLoading && claims.length > 0; else noClaims">
+    <div class="claim-card" *ngFor="let item of claims" [style.border-top-color]="getCardBorderColor(item.cla_type)">
+      <div class="card-header-bar">
+        <span class="type-pill" [ngClass]="item.cla_type.toLowerCase()">
+          {{ item.cla_type }}
+        </span>
+        <span class="status-badge">
+          <nz-badge [nzStatus]="getBadgeStatus(item.cla_status)" [nzText]="formatStatus(item.cla_status)"></nz-badge>
+        </span>
+      </div>
+
+      <div class="card-body">
+        <h3 class="claim-title">{{ item.cla_title }}</h3>
+        <p class="claim-description">{{ item.cla_description }}</p>
+
+        <div class="claim-metadata">
+          <div class="meta-row">
+            <span class="meta-label"><nz-icon nzType="home" /> Unidad:</span>
+            <span class="meta-value">{{ item.unit?.uni_code || 'Unidad Externa' }}</span>
+          </div>
+          <div class="meta-row">
+            <span class="meta-label"><nz-icon nzType="calendar" /> Reportado el:</span>
+            <span class="meta-value">{{ item.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noClaims>
+    <div class="empty-state" *ngIf="!isLoading">
+      <nz-icon nzType="info-circle" class="empty-icon" />
+      <h3>Sin Reportes Activos</h3>
+      <p>No has enviado ningún reclamo o propuesta todavía. Si experimentas algún problema en tu departamento o el edificio, haz clic en "Nuevo Reporte".</p>
+    </div>
+  </ng-template>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <nz-icon nzType="loading" class="spin-icon" />
+    <p>Cargando tus reportes...</p>
+  </div>
+</div>
+
+<!-- Modal de Creación de Reportes -->
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  nzTitle="Nuevo Reporte de Incidente"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="saveClaim()"
+  [nzOkLoading]="isSaving"
+  [nzWidth]="600"
+  nzMaskClosable="false"
+>
+  <div *nzModalContent>
+    <form nz-form [formGroup]="claimForm" nzLayout="vertical">
+      
+      <div class="modal-form-row">
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Tipo de Reporte</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="cla_type">
+              <nz-option nzValue="Reclamo" nzLabel="Reclamo (Problemas/Roturas)"></nz-option>
+              <nz-option nzValue="Sugerencia" nzLabel="Sugerencia (Ideas de Mejora)"></nz-option>
+              <nz-option nzValue="Propuesta" nzLabel="Propuesta Formal"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Unidad Asociada</nz-form-label>
+          <nz-form-control nzErrorTip="Debe seleccionar una unidad funcional">
+            <nz-select formControlName="uni_uuid" nzPlaceHolder="Seleccionar unidad">
+              <nz-option 
+                *ngFor="let rel of userUnits" 
+                [nzValue]="rel.uni_uuid" 
+                [nzLabel]="rel.unitDetail?.uni_code || 'Mi Unidad'"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Título / Asunto</nz-form-label>
+        <nz-form-control nzErrorTip="Ingresa un título descriptivo (entre 5 y 100 caracteres)">
+          <input nz-input formControlName="cla_title" placeholder="Ej: Filtración de agua en techo de cocina" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Descripción Detallada</nz-form-label>
+        <nz-form-control nzErrorTip="Describe el problema detalladamente (mínimo 10 caracteres)">
+          <textarea nz-input formControlName="cla_description" rows="5" placeholder="Brinda detalles del problema o propuesta para que el administrador pueda evaluarlo."></textarea>
+        </nz-form-control>
+      </nz-form-item>
+
+    </form>
+  </div>
+</nz-modal>
