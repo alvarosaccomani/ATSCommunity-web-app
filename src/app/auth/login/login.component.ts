@@ -31,10 +31,12 @@ import { NzIconModule } from 'ng-zorro-antd/icon';
 export class LoginComponent {
   loginForm!: FormGroup;
   isLoading = false;
+  public identity: any = null;
+  public token: any = null;
 
   constructor(
     private fb: FormBuilder,
-    private usersService: UsersService,
+    private _usersService: UsersService,
     private _sessionService: SessionService,
     private router: Router,
     private message: NzMessageService
@@ -52,24 +54,23 @@ export class LoginComponent {
 
   public submitForm(): void {
     if (this.loginForm.valid) {
-      this.isLoading = true;
+      this.isLoading = true
       const { usr_user, usr_password } = this.loginForm.value;
 
       // Llamamos al método login pasando el objeto y 'true' para obtener el token JWT
-      this.usersService.login({ usr_user, usr_password }, 'true').subscribe({
+      this._usersService.login({ usr_user, usr_password }).subscribe({
         next: (res) => {
           this.isLoading = false;
-          if (res.success && res.data && res.data.token) {
-            this.message.success('Inicio de sesión exitoso');
-            // Guardamos el token e identidad usando SessionService
-            this._sessionService.setToken(res.data.token);
-            if (res.data.user) {
-              this._sessionService.setIdentity(res.data.user);
+          if (res.success && res.data) {
+            this.identity = res.data;
+            if (!this.identity || !this.identity.usr_uuid) {
+              this.message.error('error');
             } else {
-              this._sessionService.setIdentity(res.data);
+              //persist user data
+              this._sessionService.setIdentity(JSON.stringify(this.identity));
+              //get token
+              this.getToken();
             }
-            // Redirigir a welcome
-            this.router.navigate(['/welcome']);
           } else {
             this.message.error(res.message || 'Error desconocido al iniciar sesión');
           }
@@ -89,5 +90,28 @@ export class LoginComponent {
         }
       });
     }
+  }
+
+  private getToken(): void {
+    this._usersService.login(this.loginForm.value, 'true').subscribe(
+      response => {
+        this.token = response.data.token;
+        if (this.token.length <= 0) {
+          this.message.error('error');
+        } else {
+          //persist user token
+          this._sessionService.setToken(this.token);
+          // Redirigir a welcome
+          this.router.navigate(['/welcome']);
+        }
+      },
+      error => {
+        let errorMessage = <any>error;
+        console.log(errorMessage);
+        if (errorMessage != null) {
+          this.message.error(errorMessage.error.error);
+        }
+      }
+    )
   }
 }
