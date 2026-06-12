@@ -5,6 +5,7 @@ import { FeesService } from '../../core/services/fees.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserUnitsService } from '../../core/services/user-units.service';
 import { UnitsService } from '../../core/services/units.service';
+import { TransactionsService } from '../../core/services/transactions.service';
 import { FeeInterface } from '../../core/interfaces/fee/fee.interface';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -54,6 +55,7 @@ export class MyFeesComponent implements OnInit {
     private sessionService: SessionService,
     private userUnitsService: UserUnitsService,
     private unitsService: UnitsService,
+    private _transactionsService: TransactionsService,
     private message: NzMessageService
   ) {}
 
@@ -152,29 +154,51 @@ export class MyFeesComponent implements OnInit {
   }
 
   public payFee(fee: FeeInterface): void {
-    // Simular el pago
-    this.message.info(`Pago de la expensa (${fee.unit?.uni_code} - ${fee.fee_period}) iniciado. Redirigiendo a la pasarela de pagos...`);
-    
-    // Simular éxito después de 2 segundos para dar una experiencia de interacción dinámica premium
+    const { cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid } = fee;
+    if (!cmp_uuid || !usr_uuid || !uni_uuid || !usruni_uuid || !fee_uuid) return;
+
+    this.message.info(`Iniciando pago de expensa (${fee.unit?.uni_code} - ${fee.fee_period})...`);
+
     setTimeout(() => {
-      const payload = {
-        fee_period: fee.fee_period,
-        fee_amount: fee.fee_amount,
-        fee_duedate: fee.fee_duedate,
-        fee_status: 'Pagada'
+      const gatewayId = 'GW-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+
+      const transactionPayload = {
+        cmp_uuid,
+        usr_uuid,
+        uni_uuid,
+        usruni_uuid,
+        fee_uuid,
+        tra_gatewayid: gatewayId,
+        tra_totalamount: fee.fee_amount,
+        tra_platformfee: 0.00,
+        tra_recipientamount: fee.fee_amount,
+        tra_status: 'Approved'
       };
 
-      const { cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid } = fee;
-      if (!cmp_uuid || !usr_uuid || !uni_uuid || !usruni_uuid || !fee_uuid) return;
+      this._transactionsService.saveTransaction(transactionPayload).subscribe({
+        next: (traRes: any) => {
+          const feePayload = {
+            fee_period: fee.fee_period,
+            fee_amount: fee.fee_amount,
+            fee_duedate: fee.fee_duedate,
+            fee_status: 'Pagada'
+          };
 
-      this.feesService.updateFee(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, payload).subscribe({
-        next: (res: any) => {
-          this.message.success('Expensa pagada con éxito. Transacción registrada.');
-          this.loadMyFees();
+          this.feesService.updateFee(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, feePayload).subscribe({
+            next: (feeRes: any) => {
+              this.message.success(`Pago procesado con éxito. Ref de Pago: ${gatewayId}`);
+              this.loadMyFees();
+            },
+            error: (feeErr: any) => {
+              console.error(feeErr);
+              this.message.error('El pago se acreditó pero no se pudo actualizar el estado de la expensa. Contacte administración.');
+              this.loadMyFees();
+            }
+          });
         },
-        error: (err: any) => {
-          console.error(err);
-          this.message.error('Ocurrió un error al procesar el pago.');
+        error: (traErr: any) => {
+          console.error(traErr);
+          this.message.error('Error al registrar la transacción de pago.');
         }
       });
     }, 2000);
