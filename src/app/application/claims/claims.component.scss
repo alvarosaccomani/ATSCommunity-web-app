@@ -1,0 +1,357 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.claims-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.claims-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+
+  .header-title {
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0 0 4px 0;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin: 0;
+    }
+  }
+}
+
+.filters-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  background: #ffffff;
+  padding: 14px 20px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .filter-label {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #4b5563;
+    }
+
+    .filter-select {
+      width: 180px;
+    }
+  }
+
+  .clear-filters-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+}
+
+.table-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  min-height: 0;
+}
+
+.claims-table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  ::ng-deep {
+    .ant-table-wrapper,
+    .ant-spin-nested-loading,
+    .ant-spin-container,
+    .ant-table {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .ant-table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .ant-table-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .ant-table-thead > tr > th {
+      background: #f9fafb;
+      color: #374151;
+      font-weight: 600;
+      border-bottom: 2px solid #f3f4f6;
+    }
+
+    .ant-table-tbody > tr > td {
+      color: #4b5563;
+      padding: 14px 16px;
+    }
+
+    .ant-table-row:hover > td {
+      background: #f9fafb !important;
+    }
+  }
+
+  .claim-title-cell {
+    font-weight: 600;
+    color: #1f2937;
+  }
+
+  .unit-code-badge {
+    background: #f3f4f6;
+    color: #374151;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+  }
+
+  .user-info-cell {
+    display: flex;
+    flex-direction: column;
+
+    .user-name {
+      font-weight: 600;
+      color: #374151;
+    }
+
+    .user-email {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+  }
+
+  .type-pill {
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 600;
+
+    &.reclamo {
+      background: rgba(255, 77, 79, 0.1);
+      color: #ff4d4f;
+    }
+
+    &.sugerencia {
+      background: rgba(24, 144, 255, 0.1);
+      color: #1890ff;
+    }
+
+    &.propuesta {
+      background: rgba(82, 196, 26, 0.1);
+      color: #52c41a;
+    }
+  }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+
+    &.view-action:hover {
+      background: rgba(24, 144, 255, 0.1) !important;
+      color: #1890ff !important;
+    }
+
+    &.status-action:hover {
+      background: rgba(250, 140, 22, 0.1) !important;
+      color: #fa8c16 !important;
+    }
+
+    &.delete-action:hover {
+      background: rgba(255, 77, 79, 0.1) !important;
+      color: #ff4d4f !important;
+    }
+  }
+}
+
+// Modal Detail View Styles
+.claim-detail-view {
+  font-family: 'Inter', sans-serif;
+  color: #1f2937;
+
+  .detail-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    .type-pill {
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+
+      &.reclamo {
+        background: rgba(255, 77, 79, 0.1);
+        color: #ff4d4f;
+      }
+
+      &.sugerencia {
+        background: rgba(24, 144, 255, 0.1);
+        color: #1890ff;
+      }
+
+      &.propuesta {
+        background: rgba(82, 196, 26, 0.1);
+        color: #52c41a;
+      }
+    }
+  }
+
+  .detail-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 16px 0;
+    line-height: 1.3;
+  }
+
+  .detail-section {
+    margin-bottom: 20px;
+
+    h4 {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-description {
+      font-size: 0.95rem;
+      color: #374151;
+      line-height: 1.6;
+      background: #f9fafb;
+      padding: 12px 16px;
+      border-radius: 8px;
+      border: 1px solid #f3f4f6;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+  }
+
+  .divider {
+    border: 0;
+    border-top: 1px solid #e5e7eb;
+    margin: 20px 0;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+
+    .grid-item {
+      display: flex;
+      flex-direction: column;
+
+      .grid-label {
+        font-size: 0.82rem;
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+
+      .grid-value {
+        font-size: 0.92rem;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .grid-sub {
+        font-size: 0.8rem;
+        color: #6b7280;
+        margin-top: 2px;
+      }
+    }
+  }
+}
+
+.w-100 {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .claims-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+
+    .filter-item {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 6px;
+
+      .filter-select {
+        width: 100%;
+      }
+    }
+  }
+
+  .claim-detail-view {
+    .detail-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+  }
+}

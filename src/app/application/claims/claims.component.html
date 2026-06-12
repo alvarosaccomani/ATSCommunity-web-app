@@ -1,1 +1,191 @@
-<p>claims works!</p>
+<div class="claims-container">
+  <div class="claims-header">
+    <div class="header-title">
+      <h2>Gestión de Reclamos</h2>
+      <p>Monitorea y modera las solicitudes, reclamos y propuestas enviados por los residentes del consorcio.</p>
+    </div>
+  </div>
+
+  <!-- Barra de Filtros -->
+  <div class="filters-bar">
+    <div class="filter-item">
+      <span class="filter-label">Estado:</span>
+      <nz-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Todos los estados" nzAllowClear class="filter-select">
+        <nz-option nzValue="Abierto" nzLabel="Abierto"></nz-option>
+        <nz-option nzValue="En Licitacion" nzLabel="En Licitación"></nz-option>
+        <nz-option nzValue="Aprobado" nzLabel="Aprobado"></nz-option>
+        <nz-option nzValue="En Obra" nzLabel="En Reparación"></nz-option>
+        <nz-option nzValue="FinalizadoAprobado" nzLabel="Resuelto (Finalizado)"></nz-option>
+        <nz-option nzValue="Rechazado" nzLabel="Rechazado"></nz-option>
+      </nz-select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-label">Categoría:</span>
+      <nz-select [(ngModel)]="typeFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Todas las categorías" nzAllowClear class="filter-select">
+        <nz-option nzValue="Reclamo" nzLabel="Reclamo"></nz-option>
+        <nz-option nzValue="Sugerencia" nzLabel="Sugerencia"></nz-option>
+        <nz-option nzValue="Propuesta" nzLabel="Propuesta"></nz-option>
+      </nz-select>
+    </div>
+
+    <button nz-button nzType="default" (click)="clearFilters()" *ngIf="statusFilter || typeFilter" class="clear-filters-btn">
+      <nz-icon nzType="clear" /> Limpiar Filtros
+    </button>
+  </div>
+
+  <!-- Tabla de Datos -->
+  <div class="table-container">
+    <nz-table
+      #basicTable
+      [nzData]="claims"
+      [nzLoading]="isLoading"
+      [nzBordered]="true"
+      [nzPageSize]="8"
+      class="claims-table"
+    >
+      <thead>
+        <tr>
+          <th>Asunto</th>
+          <th nzWidth="120px">Categoría</th>
+          <th nzWidth="200px">Residente</th>
+          <th nzWidth="120px">Unidad</th>
+          <th nzWidth="150px">Reportado</th>
+          <th nzWidth="150px">Estado</th>
+          <th nzWidth="150px" nzAlign="center">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let data of basicTable.data">
+          <td class="claim-title-cell">{{ data.cla_title }}</td>
+          <td>
+            <span class="type-pill" [ngClass]="data.cla_type.toLowerCase()">
+              {{ data.cla_type }}
+            </span>
+          </td>
+          <td>
+            <div class="user-info-cell">
+              <span class="user-name">{{ data.usr?.usr_name }} {{ data.usr?.usr_surname }}</span>
+              <span class="user-email">{{ data.usr?.usr_email }}</span>
+            </div>
+          </td>
+          <td>
+            <span class="unit-code-badge">{{ data.unit?.uni_code || 'Gral. Edificio' }}</span>
+          </td>
+          <td>{{ data.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</td>
+          <td>
+            <nz-badge [nzStatus]="getBadgeStatus(data.cla_status)" [nzText]="formatStatus(data.cla_status)"></nz-badge>
+          </td>
+          <td nzAlign="center">
+            <div class="action-buttons">
+              <button nz-button nzType="text" nzShape="circle" (click)="showDetailModal(data)" class="view-action" title="Ver Detalle">
+                <nz-icon nzType="eye" />
+              </button>
+              <button nz-button nzType="text" nzShape="circle" (click)="showStatusModal(data)" class="status-action" title="Cambiar Estado">
+                <nz-icon nzType="edit" />
+              </button>
+              <button
+                nz-button
+                nzType="text"
+                nzDanger
+                nzShape="circle"
+                nz-popconfirm
+                nzPopconfirmTitle="¿Estás seguro de eliminar este reclamo?"
+                (nzOnConfirm)="deleteClaim(data)"
+                class="delete-action"
+                title="Eliminar"
+              >
+                <nz-icon nzType="delete" />
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </nz-table>
+  </div>
+</div>
+
+<!-- Modal de Detalle Completo -->
+<nz-modal
+  [(nzVisible)]="isDetailVisible"
+  nzTitle="Detalle de Reporte / Incidente"
+  (nzOnCancel)="closeDetailModal()"
+  [nzFooter]="null"
+  [nzWidth]="650"
+>
+  <ng-container *nzModalContent>
+    <div class="claim-detail-view" *ngIf="selectedClaim">
+      <div class="detail-header-row">
+        <span class="type-pill" [ngClass]="selectedClaim.cla_type.toLowerCase()">
+          {{ selectedClaim.cla_type }}
+        </span>
+        <span class="status-badge-container">
+          <nz-badge [nzStatus]="getBadgeStatus(selectedClaim.cla_status)" [nzText]="formatStatus(selectedClaim.cla_status)"></nz-badge>
+        </span>
+      </div>
+
+      <h3 class="detail-title">{{ selectedClaim.cla_title }}</h3>
+
+      <div class="detail-section">
+        <h4>Descripción</h4>
+        <p class="detail-description">{{ selectedClaim.cla_description }}</p>
+      </div>
+
+      <hr class="divider" />
+
+      <div class="detail-grid">
+        <div class="grid-item">
+          <span class="grid-label"><nz-icon nzType="user" /> Reportado por:</span>
+          <span class="grid-value">{{ selectedClaim.usr?.usr_name }} {{ selectedClaim.usr?.usr_surname }}</span>
+          <span class="grid-sub">{{ selectedClaim.usr?.usr_email }}</span>
+        </div>
+
+        <div class="grid-item">
+          <span class="grid-label"><nz-icon nzType="home" /> Unidad Afectada:</span>
+          <span class="grid-value">{{ selectedClaim.unit?.uni_code || 'Espacio Común / General' }}</span>
+          <span class="grid-sub">Categoría: {{ selectedClaim.unit?.uni_category || 'N/A' }}</span>
+        </div>
+
+        <div class="grid-item">
+          <span class="grid-label"><nz-icon nzType="clock-circle" /> Fecha Creación:</span>
+          <span class="grid-value">{{ selectedClaim.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+
+        <div class="grid-item">
+          <span class="grid-label"><nz-icon nzType="sync" /> Última Actividad:</span>
+          <span class="grid-value">{{ selectedClaim.cla_updatedat | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</nz-modal>
+
+<!-- Modal de Cambio de Estado / Moderación -->
+<nz-modal
+  [(nzVisible)]="isStatusVisible"
+  nzTitle="Actualizar Estado del Reclamo"
+  (nzOnCancel)="closeStatusModal()"
+  (nzOnOk)="saveStatus()"
+  [nzOkLoading]="isSavingStatus"
+  [nzWidth]="400"
+  nzMaskClosable="false"
+>
+  <div *nzModalContent>
+    <p>Selecciona el nuevo estado para el incidente de la unidad <strong>{{ selectedClaim?.unit?.uni_code }}</strong>:</p>
+    <form nz-form [formGroup]="statusForm" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>Estado de Resolución</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="cla_status" class="w-100">
+            <nz-option nzValue="Abierto" nzLabel="Abierto"></nz-option>
+            <nz-option nzValue="En Licitacion" nzLabel="En Licitación"></nz-option>
+            <nz-option nzValue="Aprobado" nzLabel="Aprobado"></nz-option>
+            <nz-option nzValue="En Obra" nzLabel="En Reparación (En Obra)"></nz-option>
+            <nz-option nzValue="FinalizadoAprobado" nzLabel="Resuelto (Finalizado)"></nz-option>
+            <nz-option nzValue="Rechazado" nzLabel="Rechazado"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+</nz-modal>
