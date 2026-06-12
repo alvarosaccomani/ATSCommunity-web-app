@@ -4,6 +4,7 @@ import { ApplicationLayoutComponent } from './application-layout/application-lay
 import { UnitsComponent } from './units/units.component';
 import { ClaimsComponent } from './claims/claims.component';
 import { FeesComponent } from './fees/fees.component';
+import { TransactionsComponent } from './transactions/transactions.component';
 
 export const APPLICATION_ROUTES: Routes = [
     {
@@ -12,7 +13,8 @@ export const APPLICATION_ROUTES: Routes = [
         children: [
             { path: 'units', component: UnitsComponent},
             { path: 'claims', component: ClaimsComponent},
-            { path: 'fees', component: FeesComponent}
+            { path: 'fees', component: FeesComponent},
+            { path: 'transactions', component: TransactionsComponent}
         ]
     }
 ];
