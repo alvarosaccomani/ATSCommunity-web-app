@@ -1,0 +1,184 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.units-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 10px;
+  box-sizing: border-box;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.units-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-shrink: 0; /* Evita que el header se achique */
+
+  .header-title {
+    h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin: 0 0 4px 0;
+      letter-spacing: -0.5px;
+    }
+
+    p {
+      font-size: 0.9rem;
+      color: #6b7280;
+      margin: 0;
+    }
+  }
+
+  .add-btn {
+    height: 40px;
+    padding: 0 20px;
+    border-radius: 8px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(24, 144, 255, 0.35);
+    }
+  }
+}
+
+.table-container {
+  flex: 1; /* Ocupa todo el espacio vertical disponible */
+  display: flex;
+  flex-direction: column;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.05);
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  min-height: 0; /* Permite que el contenedor se achique en flexbox para activar el scroll */
+}
+
+.units-table {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  ::ng-deep {
+    .ant-table-wrapper,
+    .ant-spin-nested-loading,
+    .ant-spin-container,
+    .ant-table {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .ant-table-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .ant-table-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .ant-table-thead > tr > th {
+      background: #f9fafb;
+      color: #374151;
+      font-weight: 600;
+      border-bottom: 2px solid #f3f4f6;
+    }
+
+    .ant-table-tbody > tr > td {
+      color: #4b5563;
+      padding: 16px;
+    }
+
+    .ant-table-row:hover > td {
+      background: #f9fafb !important;
+    }
+  }
+
+  .unit-code-cell {
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+
+    &.edit-action:hover {
+      background: rgba(24, 144, 255, 0.1) !important;
+      color: #1890ff !important;
+    }
+
+    &.delete-action:hover {
+      background: rgba(255, 77, 79, 0.1) !important;
+      color: #ff4d4f !important;
+    }
+  }
+}
+
+// Modal Form Styles
+.modal-form-row {
+  display: flex;
+  gap: 16px;
+  width: 100%;
+
+  .form-half {
+    flex: 1;
+  }
+
+  .flex-checkbox-align {
+    display: flex;
+    align-items: flex-end;
+    padding-bottom: 20px;
+    box-sizing: border-box;
+  }
+}
+
+.w-100 {
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .units-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+
+    .add-btn {
+      width: 100%;
+      justify-content: center;
+    }
+  }
+
+  .modal-form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
