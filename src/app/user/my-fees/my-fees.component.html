@@ -1,1 +1,123 @@
-<p>my-fees works!</p>
+<div class="my-fees-container">
+  <div class="my-fees-header">
+    <div class="header-title">
+      <h1>Mis Expensas y Cuotas</h1>
+      <p>Historial de expensas, cargos mensuales y estado de cuenta de tus unidades funcionales</p>
+    </div>
+  </div>
+
+  <!-- Tarjetas de Resumen -->
+  <div class="summary-cards">
+    <div class="summary-card pending">
+      <div class="card-icon">
+        <span nz-icon nzType="wallet" nzTheme="outline"></span>
+      </div>
+      <div class="card-info">
+        <span class="card-label">Total Pendiente</span>
+        <strong class="card-value">{{ totalPendingBalance | currency:'USD':'symbol':'1.2-2' }}</strong>
+      </div>
+    </div>
+    
+    <div class="summary-card paid">
+      <div class="card-icon">
+        <span nz-icon nzType="check-circle" nzTheme="outline"></span>
+      </div>
+      <div class="card-info">
+        <span class="card-label">Expensas Pagadas</span>
+        <strong class="card-value">{{ paidCount }}</strong>
+      </div>
+    </div>
+
+    <div class="summary-card overdue" [class.has-overdue]="overdueCount > 0">
+      <div class="card-icon">
+        <span nz-icon nzType="warning" nzTheme="outline"></span>
+      </div>
+      <div class="card-info">
+        <span class="card-label">Boletas Vencidas</span>
+        <strong class="card-value">{{ overdueCount }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerta de Vencimiento -->
+  <div class="overdue-alert" *ngIf="overdueCount > 0">
+    <div class="alert-content">
+      <span nz-icon nzType="exclamation-circle" nzTheme="fill" class="alert-icon"></span>
+      <div class="alert-text">
+        <strong>Atención:</strong> Tienes {{ overdueCount }} expensa(s) vencida(s). Por favor regulariza tu situación de pago a la brevedad para evitar recargos e intereses de mora.
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros -->
+  <div class="filters-panel">
+    <div class="filter-item">
+      <label>Estado</label>
+      <nz-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Todos los Estados" nzAllowClear>
+        <nz-option nzValue="Pendiente" nzLabel="Pendientes"></nz-option>
+        <nz-option nzValue="Pagada" nzLabel="Pagadas"></nz-option>
+        <nz-option nzValue="Vencida" nzLabel="Vencidas"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-item">
+      <label>Unidad</label>
+      <nz-select [(ngModel)]="unitFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Todas las Unidades" nzAllowClear>
+        <nz-option *ngFor="let u of myUnits" [nzValue]="u.uni_uuid" [nzLabel]="u.uni_code + ' (' + u.uni_category + ')'"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-item">
+      <label>Período</label>
+      <nz-date-picker [(ngModel)]="periodFilter" (ngModelChange)="applyFilters()" nzMode="month" nzPlaceHolder="Seleccionar Período" nzFormat="yyyy-MM" nzAllowClear></nz-date-picker>
+    </div>
+    <div class="filter-actions">
+      <button nz-button nzType="default" (click)="clearFilters()">
+        <span nz-icon nzType="clear"></span>Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Expensas -->
+  <nz-table #feesTable [nzData]="fees" [nzLoading]="isLoading" class="fees-table" [nzPageSize]="10">
+    <thead>
+      <tr>
+        <th>Unidad</th>
+        <th>Período</th>
+        <th>Monto</th>
+        <th>Vencimiento</th>
+        <th>Estado</th>
+        <th class="actions-header">Pago</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of feesTable.data">
+        <td>
+          <div class="unit-info">
+            <span class="unit-code">{{ data.unit?.uni_code || 'N/A' }}</span>
+            <span class="unit-cat">{{ data.unit?.uni_category || 'N/A' }}</span>
+          </div>
+        </td>
+        <td>
+          <span class="period-badge">{{ data.fee_period }}</span>
+        </td>
+        <td>
+          <strong class="fee-amount">{{ data.fee_amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </td>
+        <td>{{ data.fee_duedate | date:'dd/MM/yyyy' }}</td>
+        <td>
+          <nz-badge [nzStatus]="getBadgeStatus(data.fee_status)" [nzText]="data.fee_status"></nz-badge>
+        </td>
+        <td class="actions-cell">
+          <button *ngIf="data.fee_status !== 'Pagada'; else paidLabel" 
+            nz-button nzType="primary" nzSize="small" (click)="payFee(data)" class="btn-pay">
+            <span nz-icon nzType="credit-card"></span> Pagar
+          </button>
+          <ng-template #paidLabel>
+            <span class="payment-success">
+              <span nz-icon nzType="check"></span> Confirmado
+            </span>
+          </ng-template>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
