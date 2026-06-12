@@ -31,6 +31,13 @@
             </li>
           </ul>
         </li>
+        <li nz-submenu nzOpen nzTitle="Consorcio" nzIcon="home">
+          <ul>
+            <li nz-menu-item nzMatchRouter>
+              <a routerLink="/application/units">Unidades</a>
+            </li>
+          </ul>
+        </li>
         <li nz-submenu nzOpen nzTitle="Form" nzIcon="form">
           <ul>
             <li nz-menu-item nzMatchRouter>
@@ -46,7 +53,29 @@
           <span class="header-trigger" (click)="isCollapsed = !isCollapsed">
             <nz-icon class="trigger" [nzType]="isCollapsed ? 'menu-unfold' : 'menu-fold'" />
           </span>
+          
+          
           <div class="header-right">
+            <!-- Menú Desplegable de Tienda Activa -->
+            <a nz-dropdown [nzDropdownMenu]="companyMenu" class="company-selector"
+                style="color: black; font-size: 16px; display: flex; align-items: center; cursor: pointer;">
+                <span nz-icon nzType="shop" style="margin-right: 8px;"></span>
+                <span>{{ activeCompany?.cmp_name || 'Seleccionar Comunidad' }}</span>
+                <span nz-icon nzType="down" style="margin-left: 8px; font-size: 12px;"></span>
+            </a>
+  
+            <nz-dropdown-menu #companyMenu="nzDropdownMenu">
+                <ul nz-menu>
+                    <li nz-menu-item *ngFor="let company of userRolesCompany" (click)="selectCompany(company)">
+                        <span nz-icon nzType="shop" style="margin-right: 8px;"></span> {{ company.cmp_name }}
+                    </li>
+                    <li nz-menu-divider *ngIf="userRolesCompany.length > 0"></li>
+                    <li nz-menu-item routerLink="/user/my-units">
+                        <span nz-icon nzType="appstore" style="margin-right: 8px;"></span> Ver todas mis comunidades
+                    </li>
+                </ul>
+            </nz-dropdown-menu>
+            
             <button nz-button nzType="text" class="logout-btn" (click)="logout()">
               <nz-icon nzType="logout" />
               <span>Cerrar Sesión</span>
