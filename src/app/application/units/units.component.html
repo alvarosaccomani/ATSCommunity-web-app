@@ -41,6 +41,9 @@
           <td>{{ data.uni_locationdetails || '-' }}</td>
           <td nzAlign="center">
             <div class="action-buttons">
+              <button nz-button nzType="text" nzShape="circle" (click)="showAssignmentsModal(data)" class="assign-action" title="Habitantes">
+                <nz-icon nzType="team" />
+              </button>
               <button nz-button nzType="text" nzShape="circle" (click)="showEditModal(data)" class="edit-action" title="Editar">
                 <nz-icon nzType="edit" />
               </button>
@@ -152,5 +155,151 @@
         </nz-form-control>
       </nz-form-item>
     </form>
+  </div>
+</nz-modal>
+
+<!-- Modal de Habitantes / Asignaciones (Paso B) -->
+<nz-modal
+  [(nzVisible)]="isAssignModalVisible"
+  [nzTitle]="'Habitantes - Unidad: ' + (selectedUnit?.uni_code || '')"
+  (nzOnCancel)="isAssignModalVisible = false"
+  [nzFooter]="null"
+  [nzWidth]="750"
+  nzMaskClosable="false"
+>
+  <div *nzModalContent class="assignments-modal-content">
+    
+    <!-- Listado de Habitantes Actuales -->
+    <div class="assignments-section">
+      <h3 class="section-title">Residentes Asignados</h3>
+      <nz-table
+        #assignmentsTable
+        [nzData]="unitAssignments"
+        [nzLoading]="isAssignmentsLoading"
+        [nzBordered]="true"
+        [nzSize]="'middle'"
+        [nzPageSize]="4"
+        class="assignments-table"
+      >
+        <thead>
+          <tr>
+            <th>Residente</th>
+            <th nzWidth="150px">Relación</th>
+            <th nzWidth="120px">Inicio</th>
+            <th nzWidth="100px">Estado</th>
+            <th nzWidth="100px" nzAlign="center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let rel of assignmentsTable.data">
+            <td>
+              <div class="user-info-cell">
+                <span class="user-name">{{ rel.usr?.usr_name }} {{ rel.usr?.usr_surname }}</span>
+                <span class="user-sub">{{ rel.usr?.usr_email || rel.usr?.usr_nick }}</span>
+              </div>
+            </td>
+            <td>
+              <span class="relation-badge" [ngClass]="rel.usruni_relationtype.toLowerCase().replace(' ', '-')">
+                {{ rel.usruni_relationtype }}
+              </span>
+            </td>
+            <td>{{ rel.usruni_startdate | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <nz-badge [nzStatus]="rel.usruni_isactive ? 'success' : 'default'" [nzText]="rel.usruni_isactive ? 'Activo' : 'Inactivo'"></nz-badge>
+            </td>
+            <td nzAlign="center">
+              <div class="action-buttons-compact">
+                <button 
+                  nz-button 
+                  nzType="text" 
+                  nzShape="circle" 
+                  (click)="toggleAssignmentStatus(rel)" 
+                  [title]="rel.usruni_isactive ? 'Desactivar' : 'Activar'"
+                  class="toggle-status-btn"
+                >
+                  <nz-icon [nzType]="rel.usruni_isactive ? 'eye-invisible' : 'eye'" />
+                </button>
+                <button
+                  nz-button
+                  nzType="text"
+                  nzDanger
+                  nzShape="circle"
+                  nz-popconfirm
+                  nzPopconfirmTitle="¿Eliminar definitivamente esta vinculación?"
+                  (nzOnConfirm)="deleteAssignment(rel)"
+                  title="Eliminar vinculación"
+                  class="delete-action-btn"
+                >
+                  <nz-icon nzType="delete" />
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="unitAssignments.length === 0 && !isAssignmentsLoading">
+            <td colspan="5" class="empty-cell">
+              <nz-icon nzType="info-circle" nzTheme="outline" class="empty-icon"></nz-icon>
+              <p>No hay habitantes asignados a esta unidad.</p>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+
+    <hr class="section-divider" />
+
+    <!-- Formulario para Nueva Asignación -->
+    <div class="new-assignment-section">
+      <h3 class="section-title">Asignar Nuevo Residente</h3>
+      <form nz-form [formGroup]="assignmentForm" (ngSubmit)="createAssignment()" nzLayout="vertical">
+        <div class="modal-form-row">
+          
+          <nz-form-item class="form-third">
+            <nz-form-label nzRequired>Seleccionar Residente</nz-form-label>
+            <nz-form-control nzErrorTip="Debe seleccionar un usuario">
+              <nz-select 
+                formControlName="usr_uuid" 
+                nzShowSearch 
+                nzAllowClear 
+                nzPlaceHolder="Buscar por Nombre / Email"
+              >
+                <nz-option 
+                  *ngFor="let usr of usersList" 
+                  [nzValue]="usr.usr_uuid" 
+                  [nzLabel]="usr.usr_name + ' ' + usr.usr_surname + ' (' + usr.usr_nick + ')'"
+                ></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="form-third">
+            <nz-form-label nzRequired>Tipo de Relación</nz-form-label>
+            <nz-form-control>
+              <nz-select formControlName="usruni_relationtype">
+                <nz-option nzValue="Propietario" nzLabel="Propietario"></nz-option>
+                <nz-option nzValue="Copropietario" nzLabel="Copropietario"></nz-option>
+                <nz-option nzValue="Inquilino" nzLabel="Inquilino"></nz-option>
+                <nz-option nzValue="Socio Principal" nzLabel="Socio Principal"></nz-option>
+              </nz-select>
+            </nz-form-control>
+          </nz-form-item>
+
+          <nz-form-item class="form-third">
+            <nz-form-label nzRequired>Fecha de Inicio</nz-form-label>
+            <nz-form-control nzErrorTip="Selecciona una fecha">
+              <nz-date-picker formControlName="usruni_startdate" class="w-100" nzFormat="dd/MM/yyyy"></nz-date-picker>
+            </nz-form-control>
+          </nz-form-item>
+
+        </div>
+
+        <div class="submit-assignment-row">
+          <label nz-checkbox formControlName="usruni_isactive">Asignación Activa</label>
+          <button nz-button nzType="primary" [nzLoading]="isAssigning" class="assign-submit-btn">
+            <nz-icon nzType="user-add" /> Asignar Habitante
+          </button>
+        </div>
+      </form>
+    </div>
+
   </div>
 </nz-modal>

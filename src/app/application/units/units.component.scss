@@ -131,6 +131,11 @@
     font-size: 1.1rem;
     transition: all 0.3s ease;
 
+    &.assign-action:hover {
+      background: rgba(82, 196, 26, 0.1) !important;
+      color: #52c41a !important;
+    }
+
     &.edit-action:hover {
       background: rgba(24, 144, 255, 0.1) !important;
       color: #1890ff !important;
@@ -148,9 +153,16 @@
   display: flex;
   gap: 16px;
   width: 100%;
+  flex-wrap: wrap;
 
   .form-half {
     flex: 1;
+    min-width: 200px;
+  }
+
+  .form-third {
+    flex: 1;
+    min-width: 180px;
   }
 
   .flex-checkbox-align {
@@ -163,6 +175,137 @@
 
 .w-100 {
   width: 100%;
+}
+
+// Modal de Habitantes / Asignaciones
+.assignments-modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.assignments-section, .new-assignment-section {
+  .section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 12px;
+    border-left: 4px solid #1890ff;
+    padding-left: 8px;
+  }
+}
+
+.assignments-table {
+  width: 100%;
+
+  ::ng-deep {
+    .ant-table-tbody > tr > td {
+      padding: 10px 16px !important;
+    }
+  }
+
+  .user-info-cell {
+    display: flex;
+    flex-direction: column;
+
+    .user-name {
+      font-weight: 600;
+      color: #1f2937;
+    }
+
+    .user-sub {
+      font-size: 0.8rem;
+      color: #6b7280;
+    }
+  }
+
+  .relation-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+
+    &.propietario {
+      background: rgba(24, 144, 255, 0.1);
+      color: #1890ff;
+    }
+
+    &.copropietario {
+      background: rgba(114, 46, 209, 0.1);
+      color: #722ed1;
+    }
+
+    &.inquilino {
+      background: rgba(250, 140, 22, 0.1);
+      color: #fa8c16;
+    }
+
+    &.socio-principal {
+      background: rgba(19, 194, 194, 0.1);
+      color: #13c2c2;
+    }
+  }
+
+  .empty-cell {
+    text-align: center;
+    padding: 30px !important;
+    color: #9ca3af;
+
+    .empty-icon {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    p {
+      margin: 0;
+    }
+  }
+}
+
+.action-buttons-compact {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+
+  button {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+
+    &.toggle-status-btn:hover {
+      background: rgba(0, 0, 0, 0.05) !important;
+      color: #374151 !important;
+    }
+
+    &.delete-action-btn:hover {
+      background: rgba(255, 77, 79, 0.1) !important;
+      color: #ff4d4f !important;
+    }
+  }
+}
+
+.section-divider {
+  border: 0;
+  border-top: 1px solid #f3f4f6;
+  margin: 0;
+}
+
+.submit-assignment-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 8px;
+
+  .assign-submit-btn {
+    height: 38px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
 }
 
 @media (max-width: 768px) {

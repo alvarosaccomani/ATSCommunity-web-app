@@ -1,8 +1,12 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { environment } from '../../../environments/environment';
 import { UnitsService } from '../../core/services/units.service';
 import { SessionService } from '../../core/services/session.service';
+import { UserUnitsService } from '../../core/services/user-units.service';
+import { UsersService } from '../../core/services/users.service';
 import { UnitInterface } from '../../core/interfaces/unit';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -15,6 +19,8 @@ import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzCheckboxModule } from 'ng-zorro-antd/checkbox';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
+import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 
 @Component({
   selector: 'app-units',
@@ -32,7 +38,9 @@ import { NzBadgeModule } from 'ng-zorro-antd/badge';
     NzInputNumberModule,
     NzCheckboxModule,
     NzMessageModule,
-    NzBadgeModule
+    NzBadgeModule,
+    NzPopconfirmModule,
+    NzDatePickerModule
   ],
   templateUrl: './units.component.html',
   styleUrl: './units.component.scss'
@@ -50,13 +58,26 @@ export class UnitsComponent implements OnInit {
   unitForm!: FormGroup;
   isSaving = false;
 
+  // Modal control de habitantes
+  isAssignModalVisible = false;
+  selectedUnit: UnitInterface | null = null;
+  unitAssignments: any[] = [];
+  usersList: any[] = [];
+  isAssignmentsLoading = false;
+  isAssigning = false;
+  assignmentForm!: FormGroup;
+
   constructor(
     private fb: FormBuilder,
     private unitsService: UnitsService,
     private sessionService: SessionService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private userUnitsService: UserUnitsService,
+    private usersService: UsersService,
+    private http: HttpClient
   ) {
     this.initForm();
+    this.initAssignmentForm();
   }
 
   ngOnInit(): void {
@@ -75,6 +96,15 @@ export class UnitsComponent implements OnInit {
       uni_baseamountcustom: [0.00, [Validators.required, Validators.min(0)]],
       uni_locationdetails: [''],
       uni_istransferable: [true]
+    });
+  }
+
+  public initAssignmentForm(): void {
+    this.assignmentForm = this.fb.group({
+      usr_uuid: ['', [Validators.required]],
+      usruni_relationtype: ['Inquilino', [Validators.required]],
+      usruni_startdate: [new Date(), [Validators.required]],
+      usruni_isactive: [true]
     });
   }
 
@@ -212,5 +242,136 @@ export class UnitsComponent implements OnInit {
       return 'En Mantenimiento';
     }
     return status;
+  }
+
+  public showAssignmentsModal(unit: UnitInterface): void {
+    this.selectedUnit = unit;
+    this.isAssignModalVisible = true;
+    this.assignmentForm.reset({
+      usr_uuid: '',
+      usruni_relationtype: 'Inquilino',
+      usruni_startdate: new Date(),
+      usruni_isactive: true
+    });
+    this.loadUnitAssignments();
+    this.loadUsersList();
+  }
+
+  public loadUnitAssignments(): void {
+    if (!this.selectedUnit?.uni_uuid) return;
+    this.isAssignmentsLoading = true;
+    this.userUnitsService.getUnitUsers(this.cmpUuid, this.selectedUnit.uni_uuid).subscribe({
+      next: (res: any) => {
+        this.isAssignmentsLoading = false;
+        if (res.success) {
+          this.unitAssignments = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        this.isAssignmentsLoading = false;
+        console.error(err);
+        this.message.error('No se pudieron cargar los habitantes asignados.');
+      }
+    });
+  }
+
+  public loadUsersList(): void {
+    const session = this.sessionService.getCurrentSession();
+    const token = session?.token;
+    let headers = new HttpHeaders().set('content-type', 'application/json');
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+
+    this.http.get<any>(`${environment.apiUrl}users/all/1/100`, { headers }).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.usersList = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.message.error('No se pudo cargar la lista de usuarios.');
+      }
+    });
+  }
+
+  public createAssignment(): void {
+    if (this.assignmentForm.valid && this.selectedUnit?.uni_uuid) {
+      this.isAssigning = true;
+      const formValue = this.assignmentForm.value;
+      const payload = {
+        cmp_uuid: this.cmpUuid,
+        uni_uuid: this.selectedUnit.uni_uuid,
+        usr_uuid: formValue.usr_uuid,
+        usruni_relationtype: formValue.usruni_relationtype,
+        usruni_startdate: formValue.usruni_startdate,
+        usruni_isactive: formValue.usruni_isactive
+      };
+
+      this.userUnitsService.saveUserUnit(payload).subscribe({
+        next: (res: any) => {
+          this.isAssigning = false;
+          if (res.success) {
+            this.message.success('Asignación creada con éxito');
+            this.loadUnitAssignments();
+            // Reset state
+            this.assignmentForm.get('usr_uuid')?.reset('');
+          }
+        },
+        error: (err: any) => {
+          this.isAssigning = false;
+          console.error(err);
+          this.message.error(err.error?.error || 'Error al crear la asignación.');
+        }
+      });
+    } else {
+      Object.values(this.assignmentForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+    }
+  }
+
+  public deleteAssignment(assignment: any): void {
+    if (!this.selectedUnit?.uni_uuid || !assignment.usr_uuid) return;
+    this.userUnitsService.deleteUserUnit(this.cmpUuid, assignment.usr_uuid, this.selectedUnit.uni_uuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.message.success('Asignación eliminada con éxito');
+          this.loadUnitAssignments();
+        }
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.message.error('No se pudo eliminar la asignación.');
+      }
+    });
+  }
+
+  public toggleAssignmentStatus(assignment: any): void {
+    if (!this.selectedUnit?.uni_uuid || !assignment.usr_uuid) return;
+    const updatedStatus = !assignment.usruni_isactive;
+    const payload = {
+      usruni_relationtype: assignment.usruni_relationtype,
+      usruni_isactive: updatedStatus,
+      usruni_startdate: assignment.usruni_startdate,
+      usruni_enddate: updatedStatus ? null : new Date()
+    };
+
+    this.userUnitsService.updateUserUnit(this.cmpUuid, assignment.usr_uuid, this.selectedUnit.uni_uuid, payload).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.message.success(`Asignación ${updatedStatus ? 'activada' : 'desactivada'} con éxito`);
+          this.loadUnitAssignments();
+        }
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.message.error('No se pudo actualizar el estado de la asignación.');
+      }
+    });
   }
 }
