@@ -1,1 +1,153 @@
-<p>transactions works!</p>
+<div class="transactions-container">
+  <div class="transactions-header">
+    <div class="header-title">
+      <h1>Auditoría de Pagos y Transacciones</h1>
+      <p>Historial contable y de conciliación de pagos realizados por habitantes</p>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros -->
+  <div class="filters-panel">
+    <div class="filter-item">
+      <label>Estado de Transacción</label>
+      <nz-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Filtrar por Estado" nzAllowClear>
+        <nz-option nzValue="Approved" nzLabel="Aprobada"></nz-option>
+        <nz-option nzValue="Pending" nzLabel="Pendiente"></nz-option>
+        <nz-option nzValue="Rejected" nzLabel="Rechazada"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-item">
+      <label>Unidad</label>
+      <nz-select [(ngModel)]="unitFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Filtrar por Unidad" nzShowSearch nzAllowClear>
+        <nz-option *ngFor="let u of units" [nzValue]="u.uni_uuid" [nzLabel]="u.uni_code + ' - ' + u.uni_category"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-actions">
+      <button nz-button nzType="default" (click)="clearFilters()">
+        <span nz-icon nzType="clear"></span>Limpiar
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Resultados -->
+  <nz-table #traTable [nzData]="transactions" [nzLoading]="isLoading" class="transactions-table" [nzPageSize]="10">
+    <thead>
+      <tr>
+        <th>Ref. Gateway</th>
+        <th>Unidad</th>
+        <th>Habitante</th>
+        <th>Expensa Período</th>
+        <th>Total Abonado</th>
+        <th>Fecha de Pago</th>
+        <th>Estado</th>
+        <th class="actions-header">Detalle</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of traTable.data">
+        <td>
+          <span class="gateway-ref">{{ data.tra_gatewayid }}</span>
+        </td>
+        <td>
+          <div class="unit-cell" *ngIf="data.unit">
+            <span class="unit-code">{{ data.unit.uni_code }}</span>
+            <span class="unit-cat">{{ data.unit.uni_category }}</span>
+          </div>
+        </td>
+        <td>
+          <div class="resident-cell" *ngIf="data.usr">
+            <span class="resident-name">{{ data.usr.usr_name }} {{ data.usr.usr_surname }}</span>
+            <span class="resident-email">{{ data.usr.usr_email }}</span>
+          </div>
+        </td>
+        <td>
+          <span class="period-badge" *ngIf="data.fee">{{ data.fee.fee_period }}</span>
+        </td>
+        <td>
+          <strong class="tra-amount">{{ data.tra_totalamount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </td>
+        <td>{{ data.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <nz-badge [nzStatus]="getBadgeStatus(data.tra_status)" [nzText]="formatStatus(data.tra_status)"></nz-badge>
+        </td>
+        <td class="actions-cell">
+          <button nz-button nzType="text" nzShape="circle" (click)="showDetailModal(data)" class="btn-detail" title="Ver Detalle de Auditoría">
+            <span nz-icon nzType="eye"></span>
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
+
+<!-- Modal: Detalle de Auditoría -->
+<nz-modal [(nzVisible)]="isDetailVisible" nzTitle="Detalles de Transacción" (nzOnCancel)="closeDetailModal()" [nzFooter]="modalFooter">
+  <div *nzModalContent class="tra-detail-view">
+    <div class="modal-status-banner" [ngClass]="selectedTransaction?.tra_status?.toLowerCase() || ''">
+      <span nz-icon [nzType]="selectedTransaction?.tra_status === 'Approved' ? 'check-circle' : (selectedTransaction?.tra_status === 'Pending' ? 'clock-circle' : 'close-circle')" nzTheme="fill" class="banner-icon"></span>
+      <div class="banner-text">
+        <h3>Transacción {{ formatStatus(selectedTransaction?.tra_status || '') }}</h3>
+        <p>Ref: {{ selectedTransaction?.tra_gatewayid }}</p>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Detalles del Pago</h4>
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span>Unidad Funcional:</span>
+          <strong>{{ selectedTransaction?.unit?.uni_code }} ({{ selectedTransaction?.unit?.uni_category }})</strong>
+        </div>
+        <div class="detail-row" *ngIf="selectedTransaction?.usr">
+          <span>Habitante:</span>
+          <strong>{{ selectedTransaction?.usr?.usr_name }} {{ selectedTransaction?.usr?.usr_surname }}</strong>
+        </div>
+        <div class="detail-row" *ngIf="selectedTransaction?.usr">
+          <span>Email:</span>
+          <span>{{ selectedTransaction?.usr?.usr_email }}</span>
+        </div>
+        <div class="detail-row">
+          <span>Fecha y Hora:</span>
+          <span>{{ selectedTransaction?.tra_createdat | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section">
+      <h4>Detalles de Expensa Vinculada</h4>
+      <div class="detail-grid">
+        <div class="detail-row">
+          <span>Período Liquidado:</span>
+          <strong>{{ selectedTransaction?.fee?.fee_period }}</strong>
+        </div>
+        <div class="detail-row">
+          <span>ID de Boleta (Fee):</span>
+          <span class="uuid-text">{{ selectedTransaction?.fee_uuid }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-section fee-breakdown">
+      <h4>Desglose de Importes</h4>
+      <div class="breakdown-grid">
+        <div class="breakdown-row">
+          <span>Monto Bruto Recibido:</span>
+          <span>{{ selectedTransaction?.tra_totalamount | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <div class="breakdown-row platform-fee">
+          <span>Comisión Plataforma:</span>
+          <span>- {{ selectedTransaction?.tra_platformfee | currency:'USD':'symbol':'1.2-2' }}</span>
+        </div>
+        <hr>
+        <div class="breakdown-row total-net">
+          <span>Neto Recibido Consorcio:</span>
+          <strong>{{ selectedTransaction?.tra_recipientamount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <ng-template #modalFooter>
+    <button nz-button nzType="default" (click)="closeDetailModal()">Cerrar</button>
+  </ng-template>
+</nz-modal>
