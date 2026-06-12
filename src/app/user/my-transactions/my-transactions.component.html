@@ -1,1 +1,170 @@
-<p>my-transactions works!</p>
+<div class="my-transactions-container">
+  <div class="my-transactions-header">
+    <div class="header-title">
+      <h1>Mis Pagos y Comprobantes</h1>
+      <p>Historial consolidado de expensas abonadas y comprobantes de pago digitales</p>
+    </div>
+  </div>
+
+  <!-- Tarjetas de Resumen -->
+  <div class="summary-cards">
+    <div class="summary-card total-paid">
+      <div class="card-icon">
+        <span nz-icon nzType="safety-certificate" nzTheme="outline"></span>
+      </div>
+      <div class="card-info">
+        <span class="card-label">Total Abonado</span>
+        <strong class="card-value">{{ totalPaidAmount | currency:'USD':'symbol':'1.2-2' }}</strong>
+      </div>
+    </div>
+    
+    <div class="summary-card total-count">
+      <div class="card-icon">
+        <span nz-icon nzType="file-done" nzTheme="outline"></span>
+      </div>
+      <div class="card-info">
+        <span class="card-label">Comprobantes Emitidos</span>
+        <strong class="card-value">{{ successfulCount }}</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros -->
+  <div class="filters-panel">
+    <div class="filter-item">
+      <label>Estado de Pago</label>
+      <nz-select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Todos los Estados" nzAllowClear>
+        <nz-option nzValue="Approved" nzLabel="Aprobado"></nz-option>
+        <nz-option nzValue="Pending" nzLabel="Pendiente"></nz-option>
+        <nz-option nzValue="Rejected" nzLabel="Rechazado"></nz-option>
+      </nz-select>
+    </div>
+    <div class="filter-actions">
+      <button nz-button nzType="default" (click)="clearFilters()">
+        <span nz-icon nzType="clear"></span>Limpiar Filtros
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabla de Resultados -->
+  <nz-table #traTable [nzData]="transactions" [nzLoading]="isLoading" class="transactions-table" [nzPageSize]="10">
+    <thead>
+      <tr>
+        <th>Ref. Pago</th>
+        <th>Unidad</th>
+        <th>Período</th>
+        <th>Monto Abonado</th>
+        <th>Fecha de Pago</th>
+        <th>Estado</th>
+        <th class="actions-header">Comprobante</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let data of traTable.data">
+        <td>
+          <span class="gateway-ref">{{ data.tra_gatewayid }}</span>
+        </td>
+        <td>
+          <div class="unit-info" *ngIf="data.unit">
+            <span class="unit-code">{{ data.unit.uni_code }}</span>
+            <span class="unit-cat">{{ data.unit.uni_category }}</span>
+          </div>
+        </td>
+        <td>
+          <span class="period-badge" *ngIf="data.fee">{{ data.fee.fee_period }}</span>
+        </td>
+        <td>
+          <strong class="tra-amount">{{ data.tra_totalamount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </td>
+        <td>{{ data.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</td>
+        <td>
+          <nz-badge [nzStatus]="getBadgeStatus(data.tra_status)" [nzText]="formatStatus(data.tra_status)"></nz-badge>
+        </td>
+        <td class="actions-cell">
+          <button nz-button nzType="default" nzSize="small" (click)="showDetailModal(data)" class="btn-receipt">
+            <span nz-icon nzType="file-text"></span> Ver Recibo
+          </button>
+        </td>
+      </tr>
+    </tbody>
+  </nz-table>
+</div>
+
+<!-- Modal: Comprobante Digital -->
+<nz-modal [(nzVisible)]="isDetailVisible" nzTitle="Comprobante Digital de Pago" (nzOnCancel)="closeDetailModal()" [nzFooter]="modalFooter" nzWidth="520px">
+  <div *nzModalContent class="receipt-container" id="printable-receipt">
+    <div class="receipt-header">
+      <div class="logo-area">
+        <span nz-icon nzType="bank" nzTheme="fill" class="logo-icon"></span>
+        <h2>ATS Community</h2>
+      </div>
+      <div class="receipt-title-block">
+        <h3>COMPROBANTE DE PAGO</h3>
+        <p class="receipt-date">Emitido el: {{ selectedTransaction?.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
+    </div>
+
+    <div class="receipt-body">
+      <div class="receipt-status-badge" [ngClass]="selectedTransaction?.tra_status?.toLowerCase() || ''">
+        {{ formatStatus(selectedTransaction?.tra_status || '') | uppercase }}
+      </div>
+
+      <div class="info-group">
+        <div class="info-title">Detalles de Operación</div>
+        <div class="info-row">
+          <span>Referencia de Pago:</span>
+          <strong>{{ selectedTransaction?.tra_gatewayid }}</strong>
+        </div>
+        <div class="info-row">
+          <span>ID Transacción:</span>
+          <span class="mono-text">{{ selectedTransaction?.tra_uuid }}</span>
+        </div>
+        <div class="info-row">
+          <span>Fecha:</span>
+          <span>{{ selectedTransaction?.tra_createdat | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+        </div>
+      </div>
+
+      <div class="info-group">
+        <div class="info-title">Datos del Consorcio y Habitante</div>
+        <div class="info-row">
+          <span>Unidad Funcional:</span>
+          <strong>{{ selectedTransaction?.unit?.uni_code }} ({{ selectedTransaction?.unit?.uni_category }})</strong>
+        </div>
+        <div class="info-row" *ngIf="selectedTransaction?.usr">
+          <span>Habitante responsable:</span>
+          <span>{{ selectedTransaction?.usr?.usr_name }} {{ selectedTransaction?.usr?.usr_surname }}</span>
+        </div>
+        <div class="info-row" *ngIf="selectedTransaction?.usr">
+          <span>Email:</span>
+          <span>{{ selectedTransaction?.usr?.usr_email }}</span>
+        </div>
+      </div>
+
+      <div class="info-group">
+        <div class="info-title">Concepto Liquidado</div>
+        <div class="info-row">
+          <span>Expensas Período:</span>
+          <strong>{{ selectedTransaction?.fee?.fee_period }}</strong>
+        </div>
+      </div>
+
+      <div class="receipt-amount-block">
+        <div class="amount-label">Monto Total Pagado</div>
+        <div class="amount-value">{{ selectedTransaction?.tra_totalamount | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+    </div>
+
+    <div class="receipt-footer">
+      <p>Este documento es un comprobante válido del pago realizado de forma electrónica a través de la plataforma ATS Community.</p>
+      <p class="congrats">¡Gracias por mantener tus cuentas al día!</p>
+    </div>
+  </div>
+
+  <ng-template #modalFooter>
+    <button nz-button nzType="primary" (click)="printReceipt()">
+      <span nz-icon nzType="printer"></span>Imprimir Comprobante
+    </button>
+    <button nz-button nzType="default" (click)="closeDetailModal()">Cerrar</button>
+  </ng-template>
+</nz-modal>
