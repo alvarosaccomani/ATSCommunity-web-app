@@ -7,6 +7,7 @@ import { FeesComponent } from './fees/fees.component';
 import { TransactionsComponent } from './transactions/transactions.component';
 import { ChatComponent } from '../user/chat/chat.component';
 import { TendersComponent } from '../user/tenders/tenders.component';
+import { SettingsComponent } from './settings/settings.component';
 
 export const APPLICATION_ROUTES: Routes = [
     {
@@ -18,7 +19,8 @@ export const APPLICATION_ROUTES: Routes = [
             { path: 'fees', component: FeesComponent},
             { path: 'transactions', component: TransactionsComponent},
             { path: 'chat', component: ChatComponent},
-            { path: 'tenders', component: TendersComponent}
+            { path: 'tenders', component: TendersComponent},
+            { path: 'settings', component: SettingsComponent}
         ]
     }
 ];
