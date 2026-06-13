@@ -549,12 +549,26 @@
       }
     }
     
-    .rooms-list-container .room-item {
-      padding: 10px;
-      justify-content: center;
-      
-      .room-details, .delete-room-btn {
-        display: none;
+    .rooms-list-container {
+      .room-item {
+        padding: 10px;
+        justify-content: center;
+        
+        .room-details, .delete-room-btn {
+          display: none;
+        }
+      }
+
+      .empty-rooms {
+        padding: 20px 0;
+        
+        span[nz-icon] {
+          font-size: 24px !important;
+        }
+        
+        p {
+          display: none;
+        }
       }
     }
   }
