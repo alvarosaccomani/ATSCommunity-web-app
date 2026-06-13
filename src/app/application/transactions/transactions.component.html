@@ -22,9 +22,12 @@
         <nz-option *ngFor="let u of units" [nzValue]="u.uni_uuid" [nzLabel]="u.uni_code + ' - ' + u.uni_category"></nz-option>
       </nz-select>
     </div>
-    <div class="filter-actions">
+    <div class="filter-actions" style="display: flex; gap: 8px;">
       <button nz-button nzType="default" (click)="clearFilters()">
         <span nz-icon nzType="clear"></span>Limpiar
+      </button>
+      <button nz-button nzType="primary" (click)="exportToCSV()" [disabled]="transactions.length === 0" style="background-color: #52c41a; border-color: #52c41a;">
+        <span nz-icon nzType="download"></span> Exportar CSV
       </button>
     </div>
   </div>

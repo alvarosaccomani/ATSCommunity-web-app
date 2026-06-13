@@ -255,4 +255,60 @@ export class TransactionsComponent implements OnInit {
         return status;
     }
   }
+
+  public exportToCSV(): void {
+    if (this.transactions.length === 0) {
+      this.message.warning('No hay transacciones para exportar.');
+      return;
+    }
+
+    const headers = [
+      'Referencia Gateway',
+      'Unidad Codigo',
+      'Unidad Categoria',
+      'Habitante Nombre',
+      'Habitante Email',
+      'Expensa Periodo',
+      'Monto Abonado',
+      'Comision Plataforma',
+      'Monto Neto Consorcio',
+      'Fecha de Pago',
+      'Estado'
+    ];
+
+    const rows = this.transactions.map(tra => [
+      `"${tra.tra_gatewayid || ''}"`,
+      `"${tra.unit?.uni_code || ''}"`,
+      `"${tra.unit?.uni_category || ''}"`,
+      `"${tra.usr ? tra.usr.usr_name + ' ' + tra.usr.usr_surname : ''}"`,
+      `"${tra.usr?.usr_email || ''}"`,
+      `"${tra.fee?.fee_period || ''}"`,
+      tra.tra_totalamount,
+      tra.tra_platformfee || 0,
+      tra.tra_recipientamount,
+      tra.tra_createdat ? new Date(tra.tra_createdat).toLocaleString('es-AR') : '',
+      `"${this.formatStatus(tra.tra_status)}"`
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    // Add UTF-8 BOM so Excel opens it correctly with tildes/accents
+    const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    
+    const dateStr = new Date().toISOString().slice(0, 10);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `auditoria_pagos_${this.cmpUuid || 'consorcio'}_${dateStr}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    this.message.success('Transacciones exportadas con éxito.');
+  }
 }
