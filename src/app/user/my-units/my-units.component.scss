@@ -159,6 +159,88 @@
   }
 }
 
+.co-residents-box {
+  border-top: 1px dashed #e5e7eb;
+  padding-top: 16px;
+  margin-top: 8px;
+
+  .co-residents-title {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #4b5563;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 10px;
+
+    nz-icon {
+      color: #1890ff;
+    }
+  }
+
+  .co-residents-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .co-resident-item {
+    background: #f9fafb;
+    border-radius: 8px;
+    padding: 8px 12px;
+    border: 1px solid #f3f4f6;
+    transition: background-color 0.2s ease;
+
+    &:hover {
+      background: #f3f4f6;
+    }
+
+    .member-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+
+      .member-name {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .member-relation {
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 2px 8px;
+        border-radius: 12px;
+        display: inline-block;
+
+        &.propietario {
+          background: rgba(82, 196, 26, 0.1);
+          color: #52c41a;
+        }
+
+        &.copropietario {
+          background: rgba(19, 194, 194, 0.1);
+          color: #13c2c2;
+        }
+
+        &.inquilino {
+          background: rgba(24, 144, 255, 0.1);
+          color: #1890ff;
+        }
+
+        &.socio-principal {
+          background: rgba(114, 46, 209, 0.1);
+          color: #722ed1;
+        }
+      }
+    }
+  }
+}
+
+
 .card-actions {
   border-top: 1px solid #f3f4f6;
   padding-top: 12px;

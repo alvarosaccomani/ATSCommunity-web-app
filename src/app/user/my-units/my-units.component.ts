@@ -15,6 +15,7 @@ import { lastValueFrom } from 'rxjs';
 
 interface EnrichedUserUnit extends UserUnitInterface {
   unitDetail?: UnitInterface | null;
+  coResidents?: any[];
 }
 
 @Component({
@@ -67,28 +68,25 @@ export class MyUnitsComponent implements OnInit {
         const mappings: UserUnitInterface[] = res.data;
         const enriched: EnrichedUserUnit[] = [];
 
-        // Enriquecer cada mapeo con los detalles físicos de la unidad (código, categoría, etc.)
         for (const mapping of mappings) {
+          const item: EnrichedUserUnit = {
+            ...mapping,
+            unitDetail: mapping.unit || null,
+            coResidents: []
+          };
+
           if (mapping.uni_uuid) {
             try {
-              const unitRes = await lastValueFrom(this.unitsService.getUnitById(this.cmpUuid, mapping.uni_uuid)) as any;
-              enriched.push({
-                ...mapping,
-                unitDetail: unitRes.success ? unitRes.data : null
-              });
-            } catch (unitErr) {
-              console.error(`Error cargando unidad ${mapping.uni_uuid}:`, unitErr);
-              enriched.push({
-                ...mapping,
-                unitDetail: null
-              });
+              const coRes: any = await lastValueFrom(this.userUnitsService.getUnitUsers(this.cmpUuid, mapping.uni_uuid));
+              if (coRes.success && coRes.data) {
+                // Filtrar para no mostrarse a sí mismo en la lista de "otros" co-residentes/co-propietarios
+                item.coResidents = coRes.data.filter((r: any) => r.usr_uuid !== this.usrUuid && r.usruni_isactive) || [];
+              }
+            } catch (coResErr) {
+              console.error(`Error cargando co-residentes para la unidad ${mapping.uni_uuid}:`, coResErr);
             }
-          } else {
-            enriched.push({
-              ...mapping,
-              unitDetail: null
-            });
           }
+          enriched.push(item);
         }
         this.userUnits = enriched;
       }

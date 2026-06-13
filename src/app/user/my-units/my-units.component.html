@@ -42,6 +42,21 @@
             <span class="detail-value">Desde: {{ item.usruni_startdate | date:'dd/MM/yyyy' }}</span>
           </div>
         </div>
+
+        <!-- Co-propietarios y Residentes -->
+        <div class="co-residents-box" *ngIf="item.coResidents && item.coResidents.length > 0">
+          <span class="co-residents-title"><nz-icon nzType="team" /> Copropietarios y Habitantes:</span>
+          <div class="co-residents-list">
+            <div class="co-resident-item" *ngFor="let member of item.coResidents">
+              <div class="member-info">
+                <span class="member-name">{{ member.usr?.usr_name }} {{ member.usr?.usr_surname }}</span>
+                <span class="member-relation" [ngClass]="member.usruni_relationtype.toLowerCase().replace(' ', '-')">
+                  {{ member.usruni_relationtype }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="card-actions">
