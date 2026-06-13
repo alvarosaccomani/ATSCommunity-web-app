@@ -286,6 +286,162 @@
   }
 }
 
+.payment-verifying {
+  color: #faad14 !important;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: #fffbe6;
+  border: 1px solid #ffe58f;
+  padding: 4px 12px;
+  border-radius: 4px;
+}
+
+.transfer-modal-content {
+  padding: 12px 0;
+
+  .bank-details-card {
+    background: #fafafa;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 20px;
+
+    h4 {
+      margin-top: 0;
+      margin-bottom: 8px;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    .bank-details-help {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.45);
+      margin-bottom: 16px;
+    }
+
+    .bank-info-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .bank-info-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13.5px;
+
+        span {
+          color: rgba(0, 0, 0, 0.45);
+          font-weight: 500;
+        }
+
+        strong {
+          color: rgba(0, 0, 0, 0.85);
+          font-weight: 600;
+        }
+
+        &.copyable {
+          align-items: center;
+        }
+
+        .copy-input-group {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          background: #ffffff;
+          border: 1px solid #d9d9d9;
+          border-radius: 4px;
+          padding: 2px 2px 2px 8px;
+
+          .mono-text {
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+            font-size: 12px;
+            color: rgba(0, 0, 0, 0.85);
+          }
+
+          button {
+            height: 24px;
+            width: 24px;
+            padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            border: none;
+            box-shadow: none;
+            color: #1890ff;
+
+            &:hover {
+              background: #e6f7ff;
+            }
+          }
+        }
+      }
+    }
+  }
+
+  .modal-divider {
+    border: 0;
+    border-top: 1px solid #f0f0f0;
+    margin: 20px 0;
+  }
+
+  .payment-report-section {
+    h4 {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 15px;
+      font-weight: 600;
+      color: rgba(0, 0, 0, 0.85);
+    }
+
+    .form-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 13.5px;
+
+      span {
+        color: rgba(0, 0, 0, 0.45);
+        font-weight: 500;
+      }
+
+      .report-amount {
+        font-size: 18px;
+        color: #ff4d4f;
+        font-weight: 700;
+      }
+
+      &.input-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+
+        label {
+          color: rgba(0, 0, 0, 0.85);
+          font-weight: 500;
+          font-size: 13.5px;
+        }
+
+        input {
+          width: 100%;
+          height: 36px;
+          border-radius: 4px;
+        }
+
+        .input-help {
+          font-size: 11px;
+          color: rgba(0, 0, 0, 0.45);
+        }
+      }
+    }
+  }
+}
+
 @media (max-width: 768px) {
   .my-fees-header {
     margin-bottom: 16px;

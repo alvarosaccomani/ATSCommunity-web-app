@@ -6,6 +6,7 @@ import { SessionService } from '../../core/services/session.service';
 import { UserUnitsService } from '../../core/services/user-units.service';
 import { UnitsService } from '../../core/services/units.service';
 import { TransactionsService } from '../../core/services/transactions.service';
+import { CompanySettingsService } from '../../core/services/company-settings.service';
 import { FeeInterface } from '../../core/interfaces/fee/fee.interface';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -14,6 +15,8 @@ import { NzSelectModule } from 'ng-zorro-antd/select';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
+import { NzModalModule } from 'ng-zorro-antd/modal';
+import { NzInputModule } from 'ng-zorro-antd/input';
 import { lastValueFrom } from 'rxjs';
 
 @Component({
@@ -28,7 +31,9 @@ import { lastValueFrom } from 'rxjs';
     NzSelectModule,
     NzBadgeModule,
     NzDatePickerModule,
-    NzMessageModule
+    NzMessageModule,
+    NzModalModule,
+    NzInputModule
   ],
   templateUrl: './my-fees.component.html',
   styleUrl: './my-fees.component.scss'
@@ -50,12 +55,21 @@ export class MyFeesComponent implements OnInit {
   paidCount = 0;
   overdueCount = 0;
 
+  // Modal de Pago por Transferencia
+  isTransferModalVisible = false;
+  transferReference = '';
+  isSubmittingTransfer = false;
+  bankSettings: any = {};
+  pendingTransactionsMap: { [key: string]: boolean } = {};
+  selectedFee: FeeInterface | null = null;
+
   constructor(
     private feesService: FeesService,
     private sessionService: SessionService,
     private userUnitsService: UserUnitsService,
     private unitsService: UnitsService,
     private _transactionsService: TransactionsService,
+    private companySettingsService: CompanySettingsService,
     private message: NzMessageService
   ) {}
 
@@ -67,6 +81,7 @@ export class MyFeesComponent implements OnInit {
     if (this.usrUuid) {
       this.loadMyUnits();
       this.loadMyFees();
+      this.loadBankSettings();
     } else {
       this.message.warning('No se pudo identificar tu usuario en la sesión.');
     }
@@ -85,6 +100,24 @@ export class MyFeesComponent implements OnInit {
     }
   }
 
+  public loadBankSettings(): void {
+    this.companySettingsService.getCompanySettings(this.cmpUuid).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          const settingsList = res.data || [];
+          const settingsObj: any = {};
+          settingsList.forEach((item: any) => {
+            settingsObj[item.cmps_key] = item.cmps_value;
+          });
+          this.bankSettings = settingsObj;
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar ajustes del consorcio:', err);
+      }
+    });
+  }
+
   public loadMyFees(): void {
     this.isLoading = true;
     const filters: any = {
@@ -96,18 +129,48 @@ export class MyFeesComponent implements OnInit {
       filters.fee_period = this.formatPeriod(this.periodFilter);
     }
 
-    this.feesService.getFees(this.cmpUuid, filters).subscribe({
-      next: (res: any) => {
-        this.isLoading = false;
-        if (res.success) {
-          this.fees = res.data || [];
-          this.calculateSummary();
+    this._transactionsService.getTransactions(this.cmpUuid, { usr_uuid: this.usrUuid, tra_status: 'Pending' }).subscribe({
+      next: (traRes: any) => {
+        this.pendingTransactionsMap = {};
+        if (traRes.success && traRes.data) {
+          traRes.data.forEach((tra: any) => {
+            if (tra.fee_uuid) {
+              this.pendingTransactionsMap[tra.fee_uuid] = true;
+            }
+          });
         }
+
+        this.feesService.getFees(this.cmpUuid, filters).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            if (res.success) {
+              this.fees = res.data || [];
+              this.calculateSummary();
+            }
+          },
+          error: (err: any) => {
+            this.isLoading = false;
+            console.error(err);
+            this.message.error('No se pudieron cargar tus expensas.');
+          }
+        });
       },
       error: (err: any) => {
-        this.isLoading = false;
-        console.error(err);
-        this.message.error('No se pudieron cargar tus expensas.');
+        console.error('Error al cargar transacciones pendientes:', err);
+        this.feesService.getFees(this.cmpUuid, filters).subscribe({
+          next: (res: any) => {
+            this.isLoading = false;
+            if (res.success) {
+              this.fees = res.data || [];
+              this.calculateSummary();
+            }
+          },
+          error: (feeErr: any) => {
+            this.isLoading = false;
+            console.error(feeErr);
+            this.message.error('No se pudieron cargar tus expensas.');
+          }
+        });
       }
     });
   }
@@ -146,54 +209,66 @@ export class MyFeesComponent implements OnInit {
   }
 
   public payFee(fee: FeeInterface): void {
+    this.selectedFee = fee;
+    this.transferReference = '';
+    this.isTransferModalVisible = true;
+    this.loadBankSettings();
+  }
+
+  public closeTransferModal(): void {
+    this.isTransferModalVisible = false;
+    this.selectedFee = null;
+    this.transferReference = '';
+  }
+
+  public copyText(text: string): void {
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      this.message.success('Copiado al portapapeles');
+    }).catch(err => {
+      console.error('Error al copiar al portapapeles:', err);
+      this.message.error('No se pudo copiar el texto.');
+    });
+  }
+
+  public submitTransferReport(): void {
+    if (!this.selectedFee || !this.transferReference.trim()) return;
+
+    const fee = this.selectedFee;
     const { cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid } = fee;
-    if (!cmp_uuid || !usr_uuid || !uni_uuid || !usruni_uuid || !fee_uuid) return;
+    if (!cmp_uuid || !usr_uuid || !uni_uuid || !usruni_uuid || !fee_uuid) {
+      this.message.error('Información de expensa incompleta.');
+      return;
+    }
 
-    this.message.info(`Iniciando pago de expensa (${fee.unit?.uni_code} - ${fee.fee_period})...`);
+    this.isSubmittingTransfer = true;
 
-    setTimeout(() => {
-      const gatewayId = 'GW-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    const transactionPayload = {
+      cmp_uuid,
+      usr_uuid,
+      uni_uuid,
+      usruni_uuid,
+      fee_uuid,
+      tra_gatewayid: this.transferReference.trim(),
+      tra_totalamount: fee.fee_amount,
+      tra_platformfee: 0.00,
+      tra_recipientamount: fee.fee_amount,
+      tra_status: 'Pending'
+    };
 
-      const transactionPayload = {
-        cmp_uuid,
-        usr_uuid,
-        uni_uuid,
-        usruni_uuid,
-        fee_uuid,
-        tra_gatewayid: gatewayId,
-        tra_totalamount: fee.fee_amount,
-        tra_platformfee: 0.00,
-        tra_recipientamount: fee.fee_amount,
-        tra_status: 'Approved'
-      };
-
-      this._transactionsService.saveTransaction(transactionPayload).subscribe({
-        next: (traRes: any) => {
-          const feePayload = {
-            fee_period: fee.fee_period,
-            fee_amount: fee.fee_amount,
-            fee_duedate: fee.fee_duedate,
-            fee_status: 'Pagada'
-          };
-
-          this.feesService.updateFee(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, feePayload).subscribe({
-            next: (feeRes: any) => {
-              this.message.success(`Pago procesado con éxito. Ref de Pago: ${gatewayId}`);
-              this.loadMyFees();
-            },
-            error: (feeErr: any) => {
-              console.error(feeErr);
-              this.message.error('El pago se acreditó pero no se pudo actualizar el estado de la expensa. Contacte administración.');
-              this.loadMyFees();
-            }
-          });
-        },
-        error: (traErr: any) => {
-          console.error(traErr);
-          this.message.error('Error al registrar la transacción de pago.');
-        }
-      });
-    }, 2000);
+    this._transactionsService.saveTransaction(transactionPayload).subscribe({
+      next: (res: any) => {
+        this.isSubmittingTransfer = false;
+        this.message.success('Comprobante de pago enviado. La administración verificará tu transferencia bancaria.');
+        this.closeTransferModal();
+        this.loadMyFees();
+      },
+      error: (err: any) => {
+        this.isSubmittingTransfer = false;
+        console.error('Error al guardar la transacción de transferencia:', err);
+        this.message.error('Ocurrió un error al registrar la transferencia.');
+      }
+    });
   }
 
   public getBadgeStatus(status: string): 'success' | 'error' | 'warning' | 'processing' | 'default' {
@@ -207,6 +282,10 @@ export class MyFeesComponent implements OnInit {
       default:
         return 'default';
     }
+  }
+
+  public isFeePending(feeUuid: string | null): boolean {
+    return !!(feeUuid && this.pendingTransactionsMap[feeUuid]);
   }
 
   private formatPeriod(date: Date | null): string {

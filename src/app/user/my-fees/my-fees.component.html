@@ -107,11 +107,7 @@
           <nz-badge [nzStatus]="getBadgeStatus(data.fee_status)" [nzText]="data.fee_status"></nz-badge>
         </td>
         <td class="actions-cell">
-          <button *ngIf="data.fee_status !== 'Pagada'; else paidLabel" 
-            nz-button nzType="primary" nzSize="small" (click)="payFee(data)" class="btn-pay">
-            <span nz-icon nzType="credit-card"></span> Pagar
-          </button>
-          <ng-template #paidLabel>
+          <ng-container *ngIf="data.fee_status === 'Pagada'; else notPaidBlock">
             <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
               <span class="payment-success" style="color: #52c41a; font-weight: 600;">
                 <span nz-icon nzType="check"></span> Confirmado
@@ -120,9 +116,90 @@
                 <span nz-icon nzType="download"></span> Recibo
               </button>
             </div>
+          </ng-container>
+          <ng-template #notPaidBlock>
+            <ng-container *ngIf="isFeePending(data.fee_uuid); else payButtonBlock">
+              <span class="payment-verifying" style="color: #faad14; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;" title="La administración está validando tu transferencia bancaria.">
+                <span nz-icon nzType="clock-circle" nzTheme="fill"></span> En Verificación
+              </span>
+            </ng-container>
+            <ng-template #payButtonBlock>
+              <button nz-button nzType="primary" nzSize="small" (click)="payFee(data)" class="btn-pay">
+                <span nz-icon nzType="credit-card"></span> Pagar
+              </button>
+            </ng-template>
           </ng-template>
         </td>
       </tr>
     </tbody>
   </nz-table>
+
+  <!-- Modal: Reportar Transferencia Bancaria -->
+  <nz-modal [(nzVisible)]="isTransferModalVisible" nzTitle="Reportar Pago por Transferencia" (nzOnCancel)="closeTransferModal()" [nzFooter]="transferModalFooter" nzWidth="520px">
+    <div *nzModalContent class="transfer-modal-content">
+      <div class="bank-details-card">
+        <h4>Datos de Transferencia Bancaria</h4>
+        <p class="bank-details-help">Realiza la transferencia desde tu home banking o billetera virtual usando los siguientes datos del consorcio:</p>
+        
+        <div class="bank-info-grid">
+          <div class="bank-info-row">
+            <span>Banco:</span>
+            <strong>{{ bankSettings.bank_name || 'Cargando...' }}</strong>
+          </div>
+          <div class="bank-info-row">
+            <span>Titular:</span>
+            <strong>{{ bankSettings.bank_owner || 'Cargando...' }}</strong>
+          </div>
+          <div class="bank-info-row">
+            <span>CUIT:</span>
+            <strong>{{ bankSettings.community_cuit || 'Cargando...' }}</strong>
+          </div>
+          
+          <div class="bank-info-row copyable">
+            <span>CBU/CVU:</span>
+            <div class="copy-input-group">
+              <span class="mono-text">{{ bankSettings.bank_cbu || 'Cargando...' }}</span>
+              <button nz-button nzType="text" (click)="copyText(bankSettings.bank_cbu)" title="Copiar CBU" [disabled]="!bankSettings.bank_cbu">
+                <span nz-icon nzType="copy"></span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="bank-info-row copyable">
+            <span>Alias:</span>
+            <div class="copy-input-group">
+              <span class="mono-text">{{ bankSettings.bank_alias || 'Cargando...' }}</span>
+              <button nz-button nzType="text" (click)="copyText(bankSettings.bank_alias)" title="Copiar Alias" [disabled]="!bankSettings.bank_alias">
+                <span nz-icon nzType="copy"></span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="modal-divider" />
+
+      <div class="payment-report-section">
+        <h4>Detalles de tu Pago</h4>
+        
+        <div class="form-item">
+          <span>Importe a Transferir:</span>
+          <strong class="report-amount">{{ selectedFee?.fee_amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        
+        <div class="form-item input-item">
+          <label for="reference_input">Nro. de Referencia / Comprobante:</label>
+          <input nz-input id="reference_input" [(ngModel)]="transferReference" placeholder="Ej: 98765432" maxLength="32" />
+          <span class="input-help">Ingresa el número de referencia o control del comprobante emitido por tu banco.</span>
+        </div>
+      </div>
+    </div>
+
+    <ng-template #transferModalFooter>
+      <button nz-button nzType="default" (click)="closeTransferModal()" [disabled]="isSubmittingTransfer">Cancelar</button>
+      <button nz-button nzType="primary" (click)="submitTransferReport()" [nzLoading]="isSubmittingTransfer" [disabled]="!transferReference.trim()">
+        <span nz-icon nzType="check-circle"></span> Confirmar Transferencia
+      </button>
+    </ng-template>
+  </nz-modal>
 </div>
