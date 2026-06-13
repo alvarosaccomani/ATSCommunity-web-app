@@ -7,6 +7,14 @@
 
 .app-layout {
   height: 100vh;
+  overflow: hidden;
+
+  > nz-layout {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
 }
 
 .menu-sidebar {
@@ -105,11 +113,13 @@ nz-header {
 
 nz-content {
   margin: 24px;
+  overflow-y: auto;
+  flex-grow: 1;
 }
 
 .inner-content {
-  padding: 24px;
-  background: #fff;
+  padding: 0;
+  background: transparent;
   height: 100%;
 }
 
