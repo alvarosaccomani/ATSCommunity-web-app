@@ -1,0 +1,11 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  atscommunity-web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8084:80"
+    restart: unless-stopped
