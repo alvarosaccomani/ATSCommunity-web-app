@@ -148,6 +148,19 @@
   </div>
   
   <ng-template #modalFooter>
-    <button nz-button nzType="default" (click)="closeDetailModal()">Cerrar</button>
+    <ng-container *ngIf="selectedTransaction?.tra_status === 'Pending'; else standardFooter">
+      <div class="modal-footer-actions">
+        <button nz-button nzType="default" nzDanger [nzLoading]="isActionLoading" (click)="rejectTransaction(selectedTransaction!)" class="btn-reject-action">
+          <span nz-icon nzType="close-circle"></span> Rechazar Pago
+        </button>
+        <button nz-button nzType="primary" [nzLoading]="isActionLoading" (click)="approveTransaction(selectedTransaction!)" class="btn-approve-action">
+          <span nz-icon nzType="check-circle"></span> Aprobar Pago
+        </button>
+        <button nz-button nzType="default" (click)="closeDetailModal()" [disabled]="isActionLoading">Cerrar</button>
+      </div>
+    </ng-container>
+    <ng-template #standardFooter>
+      <button nz-button nzType="default" (click)="closeDetailModal()">Cerrar</button>
+    </ng-template>
   </ng-template>
 </nz-modal>

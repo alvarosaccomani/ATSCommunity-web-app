@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { TransactionsService } from '../../core/services/transactions.service';
 import { SessionService } from '../../core/services/session.service';
 import { UnitsService } from '../../core/services/units.service';
+import { FeesService } from '../../core/services/fees.service';
 import { TransactionInterface } from '../../core/interfaces/transaction/transaction.interface';
 import { UnitInterface } from '../../core/interfaces/unit';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -35,6 +36,7 @@ export class TransactionsComponent implements OnInit {
   transactions: TransactionInterface[] = [];
   units: UnitInterface[] = [];
   isLoading = false;
+  isActionLoading = false;
   cmpUuid = '';
 
   // Filtros
@@ -49,6 +51,7 @@ export class TransactionsComponent implements OnInit {
     private transactionsService: TransactionsService,
     private sessionService: SessionService,
     private unitsService: UnitsService,
+    private feesService: FeesService,
     private message: NzMessageService
   ) {}
 
@@ -111,6 +114,96 @@ export class TransactionsComponent implements OnInit {
   public closeDetailModal(): void {
     this.isDetailVisible = false;
     this.selectedTransaction = null;
+  }
+
+  public approveTransaction(tra: TransactionInterface): void {
+    const { cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, tra_uuid } = tra;
+    if (!cmp_uuid || !usr_uuid || !uni_uuid || !usruni_uuid || !fee_uuid || !tra_uuid) return;
+
+    this.isActionLoading = true;
+    const updatePayload = {
+      tra_gatewayid: tra.tra_gatewayid,
+      tra_totalamount: tra.tra_totalamount,
+      tra_platformfee: tra.tra_platformfee || 0,
+      tra_recipientamount: tra.tra_recipientamount,
+      tra_status: 'Approved'
+    };
+
+    this.transactionsService.updateTransaction(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, tra_uuid, updatePayload).subscribe({
+      next: () => {
+        const feePayload = {
+          fee_period: tra.fee?.fee_period,
+          fee_amount: tra.fee?.fee_amount,
+          fee_status: 'Pagada'
+        };
+
+        this.feesService.updateFee(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, feePayload).subscribe({
+          next: () => {
+            this.isActionLoading = false;
+            this.message.success('El pago ha sido aprobado y la expensa fue marcada como Pagada.');
+            this.closeDetailModal();
+            this.loadTransactions();
+          },
+          error: (err: any) => {
+            this.isActionLoading = false;
+            console.error(err);
+            this.message.warning('La transacción fue aprobada, pero falló la actualización del estado de la expensa.');
+            this.closeDetailModal();
+            this.loadTransactions();
+          }
+        });
+      },
+      error: (err: any) => {
+        this.isActionLoading = false;
+        console.error(err);
+        this.message.error(err.error?.error || 'Error al aprobar la transacción.');
+      }
+    });
+  }
+
+  public rejectTransaction(tra: TransactionInterface): void {
+    const { cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, tra_uuid } = tra;
+    if (!cmp_uuid || !usr_uuid || !uni_uuid || !usruni_uuid || !fee_uuid || !tra_uuid) return;
+
+    this.isActionLoading = true;
+    const updatePayload = {
+      tra_gatewayid: tra.tra_gatewayid,
+      tra_totalamount: tra.tra_totalamount,
+      tra_platformfee: tra.tra_platformfee || 0,
+      tra_recipientamount: tra.tra_recipientamount,
+      tra_status: 'Rejected'
+    };
+
+    this.transactionsService.updateTransaction(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, tra_uuid, updatePayload).subscribe({
+      next: () => {
+        const feePayload = {
+          fee_period: tra.fee?.fee_period,
+          fee_amount: tra.fee?.fee_amount,
+          fee_status: 'Pendiente'
+        };
+
+        this.feesService.updateFee(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, feePayload).subscribe({
+          next: () => {
+            this.isActionLoading = false;
+            this.message.warning('El pago ha sido rechazado. La expensa permanece Pendiente de pago.');
+            this.closeDetailModal();
+            this.loadTransactions();
+          },
+          error: (err: any) => {
+            this.isActionLoading = false;
+            console.error(err);
+            this.message.warning('La transacción fue rechazada, pero falló la actualización del estado de la expensa.');
+            this.closeDetailModal();
+            this.loadTransactions();
+          }
+        });
+      },
+      error: (err: any) => {
+        this.isActionLoading = false;
+        console.error(err);
+        this.message.error(err.error?.error || 'Error al rechazar la transacción.');
+      }
+    });
   }
 
   public getBadgeStatus(status: string): 'success' | 'error' | 'warning' | 'processing' | 'default' {

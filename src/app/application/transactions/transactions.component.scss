@@ -300,3 +300,38 @@
     }
   }
 }
+
+.modal-footer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-items: center;
+
+  .btn-reject-action {
+    background: #fff1f0;
+    color: #ff4d4f;
+    border-color: #ffa39e;
+    font-weight: 500;
+    border-radius: 6px;
+
+    &:hover {
+      background: #ffccc7;
+      color: #d9363e;
+      border-color: #ff4d4f;
+    }
+  }
+
+  .btn-approve-action {
+    background: #f6ffed;
+    color: #52c41a;
+    border-color: #b7eb8f;
+    font-weight: 500;
+    border-radius: 6px;
+
+    &:hover {
+      background: #d9f7be;
+      color: #389e0d;
+      border-color: #52c41a;
+    }
+  }
+}
