@@ -13,7 +13,18 @@ import {
   DeleteOutline,
   EyeOutline,
   EyeInvisibleOutline,
-  MessageOutline
+  MessageOutline,
+  HomeOutline,
+  DollarOutline,
+  AuditOutline,
+  AppstoreOutline,
+  ClockCircleOutline,
+  PlusOutline,
+  FileTextOutline,
+  WalletOutline,
+  ArrowUpOutline,
+  ArrowDownOutline,
+  ShopOutline
 } from '@ant-design/icons-angular/icons';
 
 export const icons = [
@@ -31,6 +42,17 @@ export const icons = [
   DeleteOutline,
   EyeOutline,
   EyeInvisibleOutline,
-  MessageOutline
+  MessageOutline,
+  HomeOutline,
+  DollarOutline,
+  AuditOutline,
+  AppstoreOutline,
+  ClockCircleOutline,
+  PlusOutline,
+  FileTextOutline,
+  WalletOutline,
+  ArrowUpOutline,
+  ArrowDownOutline,
+  ShopOutline
 ];
 
