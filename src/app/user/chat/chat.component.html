@@ -1,1 +1,181 @@
-<p>chat works!</p>
+<div class="chat-container">
+  <!-- Left Side: Channels Sidebar -->
+  <div class="chat-sidebar">
+    <div class="sidebar-header">
+      <div class="header-title-row">
+        <h2>Canales de Chat</h2>
+        <button nz-button nzType="primary" nzShape="circle" *ngIf="isAdmin" (click)="showCreateModal()" nz-tooltip nzTooltipTitle="Crear nuevo canal">
+          <span nz-icon nzType="plus"></span>
+        </button>
+      </div>
+      
+      <!-- Search Channel Input -->
+      <div class="search-box">
+        <span nz-icon nzType="search" class="search-icon"></span>
+        <input type="text" nz-input placeholder="Buscar canal..." [(ngModel)]="searchQuery" (ngModelChange)="filterRooms()" />
+      </div>
+
+      <!-- Filters Row -->
+      <div class="filter-row">
+        <span class="filter-tag" [class.active]="selectedFilterType === 'Todos'" (click)="selectedFilterType = 'Todos'; filterRooms()">Todos</span>
+        <span class="filter-tag" [class.active]="selectedFilterType === 'Consorcio'" (click)="selectedFilterType = 'Consorcio'; filterRooms()">Consorcio</span>
+        <span class="filter-tag" [class.active]="selectedFilterType === 'Reclamos'" (click)="selectedFilterType = 'Reclamos'; filterRooms()">Reclamos</span>
+      </div>
+    </div>
+
+    <!-- Channels List -->
+    <div class="rooms-list-container">
+      <div class="loading-state" *ngIf="isLoadingRooms">
+        <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 3 }"></nz-skeleton>
+      </div>
+
+      <div class="empty-rooms" *ngIf="!isLoadingRooms && filteredRooms.length === 0">
+        <span nz-icon nzType="message" style="font-size: 32px; color: #cbd5e1;"></span>
+        <p>No se encontraron salas de chat.</p>
+      </div>
+
+      <ul class="rooms-list" *ngIf="!isLoadingRooms && filteredRooms.length > 0">
+        <li class="room-item" 
+            *ngFor="let room of filteredRooms" 
+            [class.active]="activeRoom?.chr_uuid === room.chr_uuid"
+            (click)="selectRoom(room)">
+          
+          <div class="room-icon-wrapper" [class]="room.chr_type.toLowerCase()">
+            <span nz-icon [nzType]="room.chr_type === 'Consorcio' ? 'team' : room.chr_type === 'Reclamos' ? 'tool' : 'audit'"></span>
+          </div>
+
+          <div class="room-details">
+            <span class="room-name-text">{{ room.chr_name }}</span>
+            <span class="room-type-badge">{{ room.chr_type }}</span>
+          </div>
+
+          <button nz-button nzType="text" nzDanger class="delete-room-btn" *ngIf="isAdmin" (click)="deleteRoom(room, $event)" nz-tooltip nzTooltipTitle="Eliminar canal">
+            <span nz-icon nzType="delete"></span>
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Right Side: Active Chat Room -->
+  <div class="chat-main">
+    <!-- Empty State (No Active Room) -->
+    <div class="empty-chat-state" *ngIf="!activeRoom">
+      <div class="empty-chat-content">
+        <span nz-icon nzType="wechat" class="empty-chat-icon"></span>
+        <h3>Tus conversaciones comunitarias</h3>
+        <p>Selecciona un canal de la barra lateral izquierda para comenzar a enviar mensajes con otros vecinos y la administración.</p>
+      </div>
+    </div>
+
+    <!-- Chat Active Layout -->
+    <ng-container *ngIf="activeRoom">
+      <!-- Active Room Header -->
+      <div class="chat-header">
+        <div class="active-room-info">
+          <div class="room-avatar" [class]="activeRoom.chr_type.toLowerCase()">
+            <span nz-icon [nzType]="activeRoom.chr_type === 'Consorcio' ? 'team' : activeRoom.chr_type === 'Reclamos' ? 'tool' : 'audit'"></span>
+          </div>
+          <div class="active-room-text">
+            <h3>{{ activeRoom.chr_name }}</h3>
+            <span class="room-status-desc">Canal de {{ activeRoom.chr_type | lowercase }} • Comunidad activa</span>
+          </div>
+        </div>
+
+        <div class="header-actions">
+          <!-- Contextual buttons for claims/tenders -->
+          <a nz-button nzType="default" *ngIf="activeRoom.chr_type === 'Reclamos' && activeRoom.cla_uuid" [routerLink]="isAdmin ? '/application/claims' : '/user/my-claims'">
+            <span nz-icon nzType="link"></span> Ver Reclamo
+          </a>
+          <a nz-button nzType="default" *ngIf="activeRoom.chr_type === 'Licitación' && activeRoom.ten_uuid" [routerLink]="isAdmin ? '/application/claims' : '/user/my-claims'">
+            <span nz-icon nzType="link"></span> Ver Licitación
+          </a>
+        </div>
+      </div>
+
+      <!-- Messages Area -->
+      <div class="chat-messages-container" #scrollContainer>
+        <div class="loading-state" *ngIf="isLoadingMessages">
+          <div class="skeleton-bubble left">
+            <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 1 }"></nz-skeleton>
+          </div>
+          <div class="skeleton-bubble right">
+            <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 1 }"></nz-skeleton>
+          </div>
+        </div>
+
+        <div class="empty-messages" *ngIf="!isLoadingMessages && messages.length === 0">
+          <span nz-icon nzType="message" style="font-size: 36px; color: #cbd5e1; margin-bottom: 8px;"></span>
+          <p>¡Este canal está vacío! Envía un mensaje para iniciar la conversación.</p>
+        </div>
+
+        <div class="messages-list" *ngIf="!isLoadingMessages && messages.length > 0">
+          <div class="message-row" 
+               *ngFor="let msg of messages" 
+               [class.outgoing]="msg.usr_uuid === usrUuid"
+               [class.incoming]="msg.usr_uuid !== usrUuid">
+            
+            <!-- Avatar (only for incoming messages) -->
+            <div class="message-avatar" *ngIf="msg.usr_uuid !== usrUuid">
+              {{ getInitials(usersMap[msg.usr_uuid] || 'Vecino') }}
+            </div>
+
+            <div class="message-bubble-wrapper">
+              <span class="sender-name" *ngIf="msg.usr_uuid !== usrUuid">
+                {{ usersMap[msg.usr_uuid] || 'Vecino' }}
+              </span>
+              <div class="message-bubble">
+                <p class="message-text">{{ msg.chrmsg_text }}</p>
+                <span class="message-time">{{ formatTime(msg.chrmsg_createdat) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input Composer -->
+      <div class="chat-composer">
+        <input type="text" 
+               nz-input 
+               placeholder="Escribe un mensaje aquí..." 
+               [(ngModel)]="newMessageText" 
+               (keyup.enter)="sendMessage()" />
+        <button nz-button nzType="primary" (click)="sendMessage()" [disabled]="!newMessageText.trim()">
+          <span nz-icon nzType="send"></span> Enviar
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<!-- Admin Create Channel Modal -->
+<nz-modal [(nzVisible)]="isCreateModalVisible" 
+          nzTitle="Crear nuevo canal de chat" 
+          (nzOnCancel)="handleCancel()" 
+          (nzOnOk)="createRoom()" 
+          [nzOkLoading]="isSavingRoom">
+  <ng-container *nzModalContent>
+    <div nz-form nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>Nombre del Canal</nz-form-label>
+        <nz-form-control nzErrorTip="Por favor, escribe un nombre para el canal">
+          <input nz-input placeholder="Ej: Novedades del Consorcio" [(ngModel)]="newRoomName" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Tipo de Canal</nz-form-label>
+        <nz-form-control>
+          <nz-select [(ngModel)]="newRoomType" class="w-100">
+            <nz-option nzValue="Consorcio" nzLabel="Consorcio (Canal General)"></nz-option>
+            <nz-option nzValue="Reclamos" nzLabel="Reclamos (Canal de soporte)" [nzDisabled]="true"></nz-option>
+            <nz-option nzValue="Licitación" nzLabel="Licitación (Canal de presupuesto)" [nzDisabled]="true"></nz-option>
+          </nz-select>
+          <span style="font-size: 11px; color: #8c8c8c; margin-top: 4px; display: block;">
+            Nota: Los canales de tipo Reclamo y Licitación se abren automáticamente desde sus respectivos módulos de consorcio.
+          </span>
+        </nz-form-control>
+      </nz-form-item>
+    </div>
+  </ng-container>
+</nz-modal>
