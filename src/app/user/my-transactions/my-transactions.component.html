@@ -88,6 +88,50 @@
       </tr>
     </tbody>
   </nz-table>
+
+  <!-- Vista Móvil: Listado de Transacciones en Tarjetas responsivas -->
+  <div class="mobile-transactions-list" *ngIf="!isLoading">
+    <div class="transaction-card" *ngFor="let data of transactions"
+         [class.approved]="data.tra_status === 'Approved'"
+         [class.pending]="data.tra_status === 'Pending'"
+         [class.rejected]="data.tra_status === 'Rejected'">
+      <div class="card-header">
+        <span class="gateway-ref">{{ data.tra_gatewayid }}</span>
+        <span class="period-badge" *ngIf="data.fee">{{ data.fee.fee_period }}</span>
+      </div>
+      
+      <div class="card-body">
+        <div class="card-row" *ngIf="data.unit">
+          <span class="label">Unidad:</span>
+          <span class="value">{{ data.unit.uni_code }} ({{ data.unit.uni_category }})</span>
+        </div>
+        <div class="card-row">
+          <span class="label">Monto Abonado:</span>
+          <strong class="tra-amount">{{ data.tra_totalamount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="card-row">
+          <span class="label">Fecha de Pago:</span>
+          <span class="value">{{ data.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+        <div class="card-row">
+          <span class="label">Estado:</span>
+          <nz-badge [nzStatus]="getBadgeStatus(data.tra_status)" [nzText]="formatStatus(data.tra_status)"></nz-badge>
+        </div>
+      </div>
+      
+      <div class="card-actions">
+        <button nz-button nzType="default" (click)="showDetailModal(data)" class="btn-mobile-receipt">
+          <span nz-icon nzType="file-text"></span> Ver Recibo
+        </button>
+      </div>
+    </div>
+
+    <!-- Empty State en Mobile -->
+    <div class="empty-state-card" *ngIf="transactions.length === 0">
+      <span nz-icon nzType="info-circle" style="font-size: 28px; color: rgba(0, 0, 0, 0.25);"></span>
+      <p>No se encontraron pagos registrados.</p>
+    </div>
+  </div>
 </div>
 
 <!-- Modal: Comprobante Digital -->
