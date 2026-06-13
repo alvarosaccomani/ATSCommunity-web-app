@@ -5,6 +5,7 @@ import { FeesService } from '../../core/services/fees.service';
 import { SessionService } from '../../core/services/session.service';
 import { UnitsService } from '../../core/services/units.service';
 import { UserUnitsService } from '../../core/services/user-units.service';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { FeeInterface } from '../../core/interfaces/fee/fee.interface';
 import { UnitInterface } from '../../core/interfaces/unit';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -73,7 +74,8 @@ export class FeesComponent implements OnInit {
     private sessionService: SessionService,
     private unitsService: UnitsService,
     private userUnitsService: UserUnitsService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private notificationsService: NotificationsService
   ) {
     this.initCreateForm();
     this.initEditForm();
@@ -237,6 +239,18 @@ export class FeesComponent implements OnInit {
           this.isSaving = false;
           this.isCreateModalVisible = false;
           this.message.success('Expensa creada con éxito.');
+          
+          const notification = {
+            usr_uuid: selectedAssignment.usr_uuid,
+            cmp_uuid: this.cmpUuid,
+            ntf_title: 'Nueva Expensa Emitida',
+            ntf_message: `Se ha emitido una nueva expensa por un monto de $${formValue.fee_amount} para el periodo ${this.formatPeriod(formValue.fee_period)}.`,
+            ntf_type: 'warning' as const,
+            ntf_isread: false,
+            ntf_actionurl: '/user/my-fees'
+          };
+          this.notificationsService.saveNotification(notification).subscribe();
+
           this.loadFees();
         },
         error: (err: any) => {
