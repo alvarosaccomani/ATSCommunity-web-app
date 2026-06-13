@@ -7,6 +7,7 @@ import { MyFeesComponent } from './my-fees/my-fees.component';
 import { MyTransactionsComponent } from './my-transactions/my-transactions.component';
 import { MyNotificationsComponent } from './my-notifications/my-notifications.component';
 import { ChatComponent } from './chat/chat.component';
+import { MyProfileComponent } from './my-profile/my-profile.component';
 
 export const USER_ROUTES: Routes = [
     {
@@ -18,7 +19,8 @@ export const USER_ROUTES: Routes = [
             { path: 'my-fees', component: MyFeesComponent},
             { path: 'my-transactions', component: MyTransactionsComponent},
             { path: 'my-notifications', component: MyNotificationsComponent},
-            { path: 'my-chat', component: ChatComponent}
+            { path: 'my-chat', component: ChatComponent},
+            { path: 'my-profile', component: MyProfileComponent}
         ]
     }
 ];
