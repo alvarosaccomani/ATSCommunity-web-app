@@ -112,9 +112,14 @@
             <span nz-icon nzType="credit-card"></span> Pagar
           </button>
           <ng-template #paidLabel>
-            <span class="payment-success">
-              <span nz-icon nzType="check"></span> Confirmado
-            </span>
+            <div style="display: flex; align-items: center; gap: 8px; justify-content: center;">
+              <span class="payment-success" style="color: #52c41a; font-weight: 600;">
+                <span nz-icon nzType="check"></span> Confirmado
+              </span>
+              <button nz-button nzType="link" nzSize="small" (click)="downloadReceipt(data)" style="padding: 0; display: inline-flex; align-items: center; gap: 4px;" title="Descargar Recibo en PDF">
+                <span nz-icon nzType="download"></span> Recibo
+              </button>
+            </div>
           </ng-template>
         </td>
       </tr>
