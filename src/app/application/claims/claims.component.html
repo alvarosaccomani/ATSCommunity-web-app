@@ -29,7 +29,16 @@
       </nz-select>
     </div>
 
-    <button nz-button nzType="default" (click)="clearFilters()" *ngIf="statusFilter || typeFilter" class="clear-filters-btn">
+    <div class="filter-item">
+      <span class="filter-label">Prioridad:</span>
+      <nz-select [(ngModel)]="priorityFilter" (ngModelChange)="applyFilters()" nzPlaceHolder="Todas las prioridades" nzAllowClear class="filter-select">
+        <nz-option nzValue="Baja" nzLabel="Baja"></nz-option>
+        <nz-option nzValue="Media" nzLabel="Media"></nz-option>
+        <nz-option nzValue="Alta" nzLabel="Alta"></nz-option>
+      </nz-select>
+    </div>
+
+    <button nz-button nzType="default" (click)="clearFilters()" *ngIf="statusFilter || typeFilter || priorityFilter" class="clear-filters-btn">
       <nz-icon nzType="clear" /> Limpiar Filtros
     </button>
   </div>
@@ -48,6 +57,7 @@
         <tr>
           <th>Asunto</th>
           <th nzWidth="120px">Categoría</th>
+          <th nzWidth="120px">Prioridad</th>
           <th nzWidth="200px">Residente</th>
           <th nzWidth="120px">Unidad</th>
           <th nzWidth="150px">Reportado</th>
@@ -61,6 +71,11 @@
           <td>
             <span class="type-pill" [ngClass]="data.cla_type.toLowerCase()">
               {{ data.cla_type }}
+            </span>
+          </td>
+          <td>
+            <span class="priority-badge-card" [ngClass]="data.cla_priority?.toLowerCase() || 'media'">
+              {{ data.cla_priority || 'Media' }}
             </span>
           </td>
           <td>
@@ -116,9 +131,14 @@
   <ng-container *nzModalContent>
     <div class="claim-detail-view" *ngIf="selectedClaim">
       <div class="detail-header-row">
-        <span class="type-pill" [ngClass]="selectedClaim.cla_type.toLowerCase()">
-          {{ selectedClaim.cla_type }}
-        </span>
+        <div class="pill-group">
+          <span class="type-pill" [ngClass]="selectedClaim.cla_type.toLowerCase()">
+            {{ selectedClaim.cla_type }}
+          </span>
+          <span class="priority-badge-card" [ngClass]="selectedClaim.cla_priority?.toLowerCase() || 'media'">
+            {{ selectedClaim.cla_priority || 'Media' }}
+          </span>
+        </div>
         <span class="status-badge-container">
           <nz-badge [nzStatus]="getBadgeStatus(selectedClaim.cla_status)" [nzText]="formatStatus(selectedClaim.cla_status)"></nz-badge>
         </span>
@@ -130,8 +150,6 @@
         <h4>Descripción</h4>
         <p class="detail-description">{{ selectedClaim.cla_description }}</p>
       </div>
-
-      <hr class="divider" />
 
       <div class="detail-grid">
         <div class="grid-item">
@@ -156,6 +174,47 @@
           <span class="grid-value">{{ selectedClaim.cla_updatedat | date:'dd/MM/yyyy HH:mm' }}</span>
         </div>
       </div>
+
+      <!-- Evidencia Fotográfica -->
+      <div class="evidence-section" *ngIf="claimImages.length > 0">
+        <h4>Evidencia Fotográfica</h4>
+        <div class="images-grid">
+          <div class="image-card" *ngFor="let img of claimImages">
+            <span class="moment-tag" [ngClass]="img.claimg_moment.toLowerCase()">
+              {{ img.claimg_moment === 'Antes' ? 'Antes' : 'Reparado' }}
+            </span>
+            <div class="image-wrapper">
+              <img [src]="img.claimg_image" alt="Evidencia" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Historial de Conversación / Comentarios -->
+      <div class="comments-container">
+        <h4>Historial de Conversación</h4>
+        <div class="comments-feed">
+          <div *ngFor="let c of comments" class="comment-bubble" [ngClass]="{'self': c.usr_uuid === usrUuid}">
+            <div class="comment-metadata">
+              <strong class="author-name">{{ c.usr?.usr_name }} {{ c.usr?.usr_surname }}</strong>
+              <span class="comment-time">{{ c.clac_createdat | date:'dd/MM HH:mm' }}</span>
+            </div>
+            <div class="comment-body">{{ c.clac_text }}</div>
+          </div>
+          <div class="no-comments" *ngIf="comments.length === 0">
+            No hay comentarios aún en este reporte. Puedes responder abajo.
+          </div>
+        </div>
+
+        <div class="comment-compose">
+          <input nz-input [(ngModel)]="newCommentText" placeholder="Responder al residente..." (keyup.enter)="sendComment()" [disabled]="isSubmittingComment" />
+          <button nz-button nzType="primary" (click)="sendComment()" [nzLoading]="isSubmittingComment" [disabled]="!newCommentText.trim()">
+            <span nz-icon nzType="send"></span>
+          </button>
+        </div>
+      </div>
     </div>
   </ng-container>
 </nz-modal>
@@ -167,7 +226,7 @@
   (nzOnCancel)="closeStatusModal()"
   (nzOnOk)="saveStatus()"
   [nzOkLoading]="isSavingStatus"
-  [nzWidth]="400"
+  [nzWidth]="450"
   nzMaskClosable="false"
 >
   <div *nzModalContent>
@@ -184,6 +243,20 @@
             <nz-option nzValue="FinalizadoAprobado" nzLabel="Resuelto (Finalizado)"></nz-option>
             <nz-option nzValue="Rechazado" nzLabel="Rechazado"></nz-option>
           </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Evidencia de resolución opcional al resolver el caso -->
+      <nz-form-item *ngIf="statusForm.get('cla_status')?.value === 'FinalizadoAprobado'">
+        <nz-form-label>Foto de Resolución / Evidencia (Opcional)</nz-form-label>
+        <nz-form-control>
+          <div class="file-upload-wrapper">
+            <input type="file" id="resolution-file" (change)="onResolutionFileSelected($event)" accept="image/*" class="file-input-hidden" />
+            <label for="resolution-file" class="file-upload-btn">
+              <span nz-icon nzType="upload"></span>
+              {{ resolutionImageFileName ? resolutionImageFileName : 'Adjuntar foto de la reparación...' }}
+            </label>
+          </div>
         </nz-form-control>
       </nz-form-item>
     </form>
