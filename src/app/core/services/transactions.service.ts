@@ -48,4 +48,25 @@ export class TransactionsService {
     const body = JSON.stringify(transaction);
     return this._http.post<any>(`${environment.apiUrl}transaction`, body, { headers });
   }
+
+  /**
+   * Actualiza el estado o datos de una transacción.
+   */
+  public updateTransaction(
+    cmp_uuid: string,
+    usr_uuid: string,
+    uni_uuid: string,
+    usruni_uuid: string,
+    fee_uuid: string,
+    tra_uuid: string,
+    transaction: any
+  ): Observable<any> {
+    const headers = this.getHeaders();
+    const body = JSON.stringify(transaction);
+    return this._http.put<any>(
+      `${environment.apiUrl}transaction/${cmp_uuid}/${usr_uuid}/${uni_uuid}/${usruni_uuid}/${fee_uuid}/${tra_uuid}`,
+      body,
+      { headers }
+    );
+  }
 }
