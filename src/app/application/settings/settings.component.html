@@ -1,1 +1,153 @@
-<p>settings works!</p>
+<div class="settings-container">
+  <!-- Header Banner -->
+  <div class="settings-banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+      <span class="banner-badge">Administración</span>
+      <h1>Ajustes del Consorcio</h1>
+      <p>Configura los datos fiscales del consorcio, las cuentas bancarias de transferencias y las políticas de cobranzas.</p>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-state-spin" *ngIf="isLoading">
+    <nz-spin nzSimple nzSize="large"></nz-spin>
+    <p>Recuperando ajustes del consorcio...</p>
+  </div>
+
+  <!-- Form content -->
+  <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()" *ngIf="!isLoading" class="settings-form">
+    
+    <div nz-row [nzGutter]="24" class="forms-grid">
+      <!-- COLUMN 1: BANKING DATA -->
+      <div nz-col [nzXs]="24" [nzLg]="12">
+        <nz-card [nzBordered]="false" class="settings-card glass-card animated fadeInUp">
+          <div class="card-header-icon">
+            <span nz-icon nzType="bank" class="icon-indigo"></span>
+            <h3>Cuentas Bancarias de Recaudación</h3>
+          </div>
+          <p class="card-desc">Registra los datos bancarios donde los copropietarios transferirán los pagos de sus expensas.</p>
+          
+          <hr class="card-divider" />
+          
+          <div class="form-group-item">
+            <label for="bank_name">Nombre de la Entidad Bancaria</label>
+            <input nz-input id="bank_name" formControlName="bank_name" placeholder="Ej: Banco Galicia" />
+            <div class="error-msg" *ngIf="settingsForm.get('bank_name')?.invalid && settingsForm.get('bank_name')?.touched">
+              El nombre del banco es obligatorio.
+            </div>
+          </div>
+
+          <div class="form-group-item">
+            <label for="bank_owner">Titular de la Cuenta</label>
+            <input nz-input id="bank_owner" formControlName="bank_owner" placeholder="Ej: Consorcio Torre Alvear" />
+            <div class="error-msg" *ngIf="settingsForm.get('bank_owner')?.invalid && settingsForm.get('bank_owner')?.touched">
+              El nombre del titular de cuenta es obligatorio.
+            </div>
+          </div>
+
+          <div class="form-group-item">
+            <label for="bank_cbu">CBU / CVU (22 dígitos)</label>
+            <input nz-input id="bank_cbu" formControlName="bank_cbu" placeholder="Ej: 0070001234567890123456" maxLength="22" />
+            <div class="error-msg" *ngIf="settingsForm.get('bank_cbu')?.invalid && settingsForm.get('bank_cbu')?.touched">
+              Debes ingresar una CBU/CVU válida de exactamente 22 dígitos.
+            </div>
+          </div>
+
+          <div class="form-group-item">
+            <label for="bank_alias">Alias de Transferencia</label>
+            <input nz-input id="bank_alias" formControlName="bank_alias" placeholder="Ej: alvear.torre.pago" />
+            <div class="error-msg" *ngIf="settingsForm.get('bank_alias')?.invalid && settingsForm.get('bank_alias')?.touched">
+              El alias de la cuenta es obligatorio.
+            </div>
+          </div>
+        </nz-card>
+      </div>
+
+      <!-- COLUMN 2: FINANCIAL POLICIES & GENERAL INFO -->
+      <div nz-col [nzXs]="24" [nzLg]="12" class="col-right">
+        
+        <!-- CARD 2.1: FINANCIAL POLICIES -->
+        <nz-card [nzBordered]="false" class="settings-card glass-card animated fadeInUp delay-1">
+          <div class="card-header-icon">
+            <span nz-icon nzType="percentage" class="icon-amber"></span>
+            <h3>Políticas y Liquidación de Expensas</h3>
+          </div>
+          <p class="card-desc">Define las penalidades financieras y los vencimientos de cobro del consorcio.</p>
+          
+          <hr class="card-divider" />
+
+          <div nz-row [nzGutter]="16">
+            <div nz-col [nzSpan]="12">
+              <div class="form-group-item">
+                <label for="due_day">Día de Vencimiento Mensual</label>
+                <input nz-input type="number" id="due_day" formControlName="due_day" min="1" max="31" />
+                <div class="error-msg" *ngIf="settingsForm.get('due_day')?.invalid && settingsForm.get('due_day')?.touched">
+                  Ingresa un día del mes válido (1 a 31).
+                </div>
+              </div>
+            </div>
+            
+            <div nz-col [nzSpan]="12">
+              <div class="form-group-item">
+                <label for="late_fee_interest">Interés por Mora (%)</label>
+                <input nz-input type="number" step="0.1" id="late_fee_interest" formControlName="late_fee_interest" min="0" />
+                <div class="error-msg" *ngIf="settingsForm.get('late_fee_interest')?.invalid && settingsForm.get('late_fee_interest')?.touched">
+                  El recargo por mora debe ser de 0% o mayor.
+                </div>
+              </div>
+            </div>
+          </div>
+        </nz-card>
+
+        <!-- CARD 2.2: GENERAL DATA -->
+        <nz-card [nzBordered]="false" class="settings-card glass-card animated fadeInUp delay-2">
+          <div class="card-header-icon">
+            <span nz-icon nzType="solution" class="icon-blue"></span>
+            <h3>Información Fiscal del Consorcio</h3>
+          </div>
+          <p class="card-desc">Especifica la identidad comercial del consorcio para facturación e identificación.</p>
+          
+          <hr class="card-divider" />
+
+          <div class="form-group-item">
+            <label for="community_legal_name">Nombre o Razón Social</label>
+            <input nz-input id="community_legal_name" formControlName="community_legal_name" placeholder="Ej: Consorcio Propietarios Torre Alvear" />
+            <div class="error-msg" *ngIf="settingsForm.get('community_legal_name')?.invalid && settingsForm.get('community_legal_name')?.touched">
+              La Razón Social del consorcio es requerida.
+            </div>
+          </div>
+
+          <div class="form-group-item">
+            <label for="community_cuit">CUIT Consorcio (11 dígitos sin guiones)</label>
+            <input nz-input id="community_cuit" formControlName="community_cuit" placeholder="Ej: 30712345678" maxLength="11" />
+            <div class="error-msg" *ngIf="settingsForm.get('community_cuit')?.invalid && settingsForm.get('community_cuit')?.touched">
+              Ingresa una clave CUIT válida de exactamente 11 números.
+            </div>
+          </div>
+
+          <div class="form-group-item">
+            <label for="community_address">Dirección Física</label>
+            <input nz-input id="community_address" formControlName="community_address" placeholder="Ej: Av. del Libertador 4200, Palermo" />
+            <div class="error-msg" *ngIf="settingsForm.get('community_address')?.invalid && settingsForm.get('community_address')?.touched">
+              La dirección física es obligatoria.
+            </div>
+          </div>
+        </nz-card>
+      </div>
+    </div>
+
+    <!-- Actions Footer -->
+    <div class="settings-footer animated fadeInUp delay-3">
+      <button nz-button 
+              nzType="primary" 
+              type="submit" 
+              class="save-btn" 
+              [nzLoading]="isSaving" 
+              [disabled]="settingsForm.invalid">
+        <span nz-icon nzType="save"></span> Guardar Configuración
+      </button>
+    </div>
+
+  </form>
+</div>

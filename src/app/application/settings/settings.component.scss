@@ -1,0 +1,309 @@
+/* Premium SCSS Styles for Consorcio Settings Module */
+
+.settings-container {
+  padding: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  background-color: #f8fafc;
+}
+
+/* 1. Header Banner */
+.settings-banner {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #0284c7 0%, #075985 100%);
+  padding: 40px;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.25);
+
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+    z-index: 1;
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 2;
+    max-width: 800px;
+
+    .banner-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.18);
+      backdrop-filter: blur(4px);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 1.05rem;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+}
+
+/* 2. Loading State Spinner */
+.loading-state-spin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 24px;
+  color: #64748b;
+  gap: 16px;
+
+  p {
+    font-size: 14px;
+    font-weight: 500;
+    margin: 0;
+  }
+}
+
+/* 3. Form Grid & Layout */
+.settings-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.col-right {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* 4. Settings Card */
+.settings-card {
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 24px 28px;
+  
+  &.glass-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+  }
+
+  &:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    border-color: #cbd5e1;
+  }
+
+  .card-header-icon {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+
+    span {
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      
+      &.icon-indigo { color: #4f46e5; }
+      &.icon-amber { color: #d97706; }
+      &.icon-blue { color: #0284c7; }
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #0f172a;
+      margin: 0;
+    }
+  }
+
+  .card-desc {
+    font-size: 13.5px;
+    color: #64748b;
+    margin: 0 0 16px 0;
+    line-height: 1.4;
+  }
+}
+
+.card-divider {
+  border: 0;
+  height: 1px;
+  background: #e2e8f0;
+  margin: 0 0 20px 0;
+}
+
+/* 5. Inputs & Labels */
+.form-group-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 18px;
+
+  label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  input[nz-input] {
+    border-radius: 8px;
+    border: 1px solid #cbd5e1;
+    padding: 8px 12px;
+    height: 40px;
+    font-size: 14px;
+    color: #1e293b;
+    transition: all 0.2s ease;
+
+    &:focus {
+      border-color: #0284c7;
+      box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.15);
+    }
+    
+    &.ng-invalid.ng-touched {
+      border-color: #ef4444;
+      background: #fef2f2;
+      
+      &:focus {
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.15);
+      }
+    }
+  }
+
+  .error-msg {
+    font-size: 11.5px;
+    color: #ef4444;
+    font-weight: 500;
+    margin-top: 2px;
+  }
+}
+
+/* 6. Footer & Save Button */
+.settings-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 18px 24px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  margin-top: 8px;
+
+  .save-btn {
+    border-radius: 8px;
+    font-weight: 600;
+    height: 42px;
+    padding: 0 24px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: #0284c7;
+    border-color: #0284c7;
+    box-shadow: 0 4px 6px -1px rgba(2, 132, 199, 0.2);
+    transition: all 0.2s ease;
+
+    &:hover:not([disabled]) {
+      background: #0369a1;
+      border-color: #0369a1;
+      box-shadow: 0 4px 10px -1px rgba(2, 132, 199, 0.35);
+    }
+    
+    &[disabled] {
+      background: #cbd5e1;
+      border-color: #cbd5e1;
+      color: #94a3b8;
+      box-shadow: none;
+    }
+  }
+}
+
+/* 7. Keyframes Animations */
+.animated {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 15px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.fadeInUp {
+  animation-name: fadeInUp;
+}
+
+/* Animations stagger delays */
+.delay-1 {
+  animation-delay: 0.1s;
+}
+.delay-2 {
+  animation-delay: 0.2s;
+}
+.delay-3 {
+  animation-delay: 0.3s;
+}
+
+/* Responsive adjust */
+@media (max-width: 768px) {
+  .settings-container {
+    padding: 16px;
+    gap: 16px;
+  }
+
+  .settings-banner {
+    padding: 24px;
+    
+    h1 {
+      font-size: 1.7rem;
+    }
+    p {
+      font-size: 0.95rem;
+    }
+  }
+
+  .settings-card {
+    padding: 20px;
+  }
+
+  .settings-footer {
+    justify-content: stretch;
+    padding: 12px;
+    
+    .save-btn {
+      width: 100%;
+    }
+  }
+}
