@@ -604,3 +604,227 @@
   }
 }
 
+// Tender / Licitación Section Styles
+.tender-section {
+  margin-top: 16px;
+  margin-bottom: 16px;
+
+  .tender-header-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+
+    h4 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #111827;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+
+      nz-icon {
+        color: #1890ff;
+        font-size: 1.1rem;
+      }
+    }
+  }
+
+  .no-tender-box {
+    background: #fafafa;
+    border: 1px dashed #d9d9d9;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+
+    p {
+      margin-top: 0;
+      margin-bottom: 16px;
+      font-size: 0.9rem;
+    }
+
+    .tender-init-form {
+      max-width: 350px;
+      margin: 0 auto;
+      text-align: left;
+    }
+  }
+
+  .active-tender-box {
+    background: #ffffff;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+
+    .tender-meta-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f9fafb;
+      padding: 10px 14px;
+      border-radius: 6px;
+      border: 1px solid #f3f4f6;
+      font-size: 0.85rem;
+      color: #374151;
+
+      .tender-admin-actions {
+        display: flex;
+        gap: 8px;
+
+        button {
+          font-weight: 600;
+          border-radius: 4px;
+        }
+      }
+    }
+
+    .provider-options-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+
+      .options-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #4b5563;
+        margin: 0 0 4px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .option-item {
+        background: #ffffff;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        transition: all 0.3s ease;
+        position: relative;
+
+        &:hover {
+          border-color: rgba(24, 144, 255, 0.3);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .option-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .provider-name {
+            font-weight: 700;
+            color: #1f2937;
+            font-size: 0.95rem;
+          }
+
+          .provider-amount {
+            color: #10b981;
+            font-size: 1.05rem;
+          }
+        }
+
+        .option-details {
+          font-size: 0.85rem;
+          color: #6b7280;
+          margin: 0;
+          line-height: 1.4;
+          background: #f9fafb;
+          padding: 6px 10px;
+          border-radius: 4px;
+        }
+
+        .votes-progress {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+
+          .progress-bar-wrapper {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            width: 100%;
+
+            .progress-bar-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #1890ff, #722ed1);
+              border-radius: 3px;
+              transition: width 0.4s ease-out;
+            }
+          }
+
+          .progress-stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            font-weight: 600;
+
+            .progress-pct {
+              color: #1890ff;
+            }
+
+            .progress-count {
+              color: #4b5563;
+            }
+          }
+        }
+
+        .option-footer {
+          display: flex;
+          justify-content: flex-end;
+          padding-top: 4px;
+
+          .delete-opt-btn {
+            padding: 0;
+            font-size: 0.8rem;
+            font-weight: 600;
+            height: auto;
+          }
+        }
+      }
+
+      .no-options {
+        font-size: 0.85rem;
+        color: #9ca3af;
+        text-align: center;
+        font-style: italic;
+        padding: 12px 0;
+      }
+    }
+
+    .add-option-box {
+      .sub-divider {
+        border: 0;
+        border-top: 1px solid #f3f4f6;
+        margin: 16px 0;
+      }
+
+      .options-title {
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: #4b5563;
+        margin: 0 0 12px 0;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+
+      .form-row-compact {
+        display: flex;
+        gap: 12px;
+
+        .form-half {
+          flex: 1;
+          min-width: 140px;
+        }
+      }
+    }
+  }
+}
+

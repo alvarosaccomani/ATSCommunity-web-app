@@ -190,6 +190,114 @@
         </div>
       </div>
 
+      <!-- Sección de Convocatoria / Licitación de Presupuestos -->
+      <div class="tender-section" *ngIf="selectedClaim?.cla_status === 'En Licitacion' || activeTender">
+        <hr class="divider" />
+        <div class="tender-header-row">
+          <h4><nz-icon nzType="solution" /> Licitación de Presupuestos</h4>
+          <span class="tender-status-badge" *ngIf="activeTender">
+            <nz-badge [nzStatus]="activeTender.ten_status === 'Activa' ? 'processing' : 'default'" 
+                      [nzText]="activeTender.ten_status === 'Activa' ? 'Convocatoria Abierta' : 'Convocatoria Cerrada'"></nz-badge>
+          </span>
+        </div>
+
+        <!-- Cargar Convocatoria Inicial (Si no existe) -->
+        <div class="no-tender-box" *ngIf="!activeTender && !isTenderLoading">
+          <p>No se ha iniciado ninguna convocatoria de licitación para este reclamo aún.</p>
+          <form nz-form [formGroup]="tenderForm" class="tender-init-form" nzLayout="vertical">
+            <nz-form-item>
+              <nz-form-label nzRequired>Plazo Límite de Votación</nz-form-label>
+              <nz-form-control nzErrorTip="Debe seleccionar una fecha límite.">
+                <nz-date-picker formControlName="ten_votingdeadline" nzShowTime nzFormat="dd/MM/yyyy HH:mm" class="w-100"></nz-date-picker>
+              </nz-form-control>
+            </nz-form-item>
+            <button nz-button nzType="primary" [nzLoading]="isSavingTender" (click)="startTender()" [disabled]="!tenderForm.valid">
+              <nz-icon nzType="play-circle" /> Iniciar Licitación
+            </button>
+          </form>
+        </div>
+
+        <!-- Licitación Activa / Cerrada -->
+        <div class="active-tender-box" *ngIf="activeTender">
+          <div class="tender-meta-info">
+            <span class="deadline-text"><strong>Vence:</strong> {{ activeTender.ten_votingdeadline | date:'dd/MM/yyyy HH:mm' }}</span>
+            <div class="tender-admin-actions" *ngIf="activeTender.ten_status === 'Activa'">
+              <button nz-button nzType="default" nzDanger nzSize="small" nz-popconfirm nzPopconfirmTitle="¿Declarar desierta esta licitación?" (nzOnConfirm)="closeTender('Desierta')">
+                Declarar Desierta
+              </button>
+              <button nz-button nzType="primary" nzSize="small" nz-popconfirm nzPopconfirmTitle="¿Cerrar convocatoria con los resultados actuales?" (nzOnConfirm)="closeTender('Cerrada')">
+                Cerrar Licitación
+              </button>
+            </div>
+          </div>
+
+          <!-- Listado de Presupuestos Cargados -->
+          <div class="provider-options-list">
+            <h5 class="options-title">Propuestas de Presupuestos ({{ tenderOptions.length }})</h5>
+            <div class="option-item" *ngFor="let opt of tenderOptions">
+              <div class="option-header">
+                <span class="provider-name">{{ opt.tenopt_providername }}</span>
+                <strong class="provider-amount">{{ opt.tenopt_amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+              </div>
+              <p class="option-details" *ngIf="opt.tenopt_details">{{ opt.tenopt_details }}</p>
+              
+              <!-- Conteo y Progreso de Votos -->
+              <div class="votes-progress">
+                <div class="progress-bar-wrapper">
+                  <div class="progress-bar-fill" [style.width.%]="opt.percentage || 0"></div>
+                </div>
+                <div class="progress-stats">
+                  <span class="progress-pct">{{ opt.percentage | number:'1.0-1' }}%</span>
+                  <span class="progress-count">{{ opt.votesCount || 0 }} voto(s)</span>
+                </div>
+              </div>
+
+              <!-- Eliminar propuesta (Solo si la licitación está activa) -->
+              <div class="option-footer" *ngIf="activeTender.ten_status === 'Activa'">
+                <button nz-button nzType="text" nzDanger nzSize="small" class="delete-opt-btn"
+                        nz-popconfirm nzPopconfirmTitle="¿Eliminar esta propuesta?" (nzOnConfirm)="deleteTenderOption(opt)">
+                  <nz-icon nzType="delete" /> Eliminar
+                </button>
+              </div>
+            </div>
+            <div class="no-options" *ngIf="tenderOptions.length === 0">
+              No hay presupuestos cargados en esta licitación.
+            </div>
+          </div>
+
+          <!-- Formulario para agregar nuevo Presupuesto (Solo si está activa) -->
+          <div class="add-option-box" *ngIf="activeTender.ten_status === 'Activa'">
+            <hr class="sub-divider" />
+            <h5 class="options-title">Cargar Nueva Propuesta de Proveedor</h5>
+            <form nz-form [formGroup]="tenderOptionForm" (ngSubmit)="addTenderOption()" nzLayout="vertical">
+              <div class="form-row-compact">
+                <nz-form-item class="form-half">
+                  <nz-form-label nzRequired>Proveedor</nz-form-label>
+                  <nz-form-control nzErrorTip="Nombre del proveedor obligatorio.">
+                    <input nz-input formControlName="tenopt_providername" placeholder="Ej: Ascensores S.A." />
+                  </nz-form-control>
+                </nz-form-item>
+                <nz-form-item class="form-half">
+                  <nz-form-label nzRequired>Monto Presupuesto</nz-form-label>
+                  <nz-form-control nzErrorTip="Monto válido requerido.">
+                    <nz-input-number formControlName="tenopt_amount" [nzMin]="0.01" nzPlaceHolder="Monto" class="w-100"></nz-input-number>
+                  </nz-form-control>
+                </nz-form-item>
+              </div>
+              <nz-form-item>
+                <nz-form-label>Detalles / Descripción Propuesta</nz-form-label>
+                <nz-form-control>
+                  <textarea nz-input formControlName="tenopt_details" rows="2" placeholder="Especificaciones, plazos de obra, etc."></textarea>
+                </nz-form-control>
+              </nz-form-item>
+              <button nz-button nzType="primary" [nzLoading]="isSavingTenderOption" class="w-100" [disabled]="!tenderOptionForm.valid">
+                <nz-icon nzType="plus" /> Agregar Propuesta
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
       <hr class="divider" />
 
       <!-- Historial de Conversación / Comentarios -->

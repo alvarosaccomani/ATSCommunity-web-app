@@ -4,6 +4,9 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { ClaimsService } from '../../core/services/claims.service';
 import { ClaimImagesService } from '../../core/services/claim-images.service';
 import { ClaimCommentsService } from '../../core/services/claim-comments.service';
+import { TendersService } from '../../core/services/tenders.service';
+import { TenderOptionsService } from '../../core/services/tender-options.service';
+import { VotesService } from '../../core/services/votes.service';
 import { SessionService } from '../../core/services/session.service';
 import { ClaimInterface } from '../../core/interfaces/claim';
 import { ClaimCommentInterface } from '../../core/interfaces/claim-comment';
@@ -17,6 +20,8 @@ import { NzInputModule } from 'ng-zorro-antd/input';
 import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { NzPopconfirmModule } from 'ng-zorro-antd/popconfirm';
 import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
+import { NzDatePickerModule } from 'ng-zorro-antd/date-picker';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 
 @Component({
   selector: 'app-claims',
@@ -34,7 +39,9 @@ import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
     NzInputModule,
     NzBadgeModule,
     NzPopconfirmModule,
-    NzMessageModule
+    NzMessageModule,
+    NzDatePickerModule,
+    NzInputNumberModule
   ],
   templateUrl: './claims.component.html',
   styleUrl: './claims.component.scss'
@@ -58,6 +65,16 @@ export class ClaimsComponent implements OnInit {
   isSubmittingComment = false;
   claimImages: any[] = [];
 
+  // Licitación y Votaciones
+  activeTender: any = null;
+  tenderOptions: any[] = [];
+  votesList: any[] = [];
+  isTenderLoading = false;
+  isSavingTender = false;
+  isSavingTenderOption = false;
+  tenderForm!: FormGroup;
+  tenderOptionForm!: FormGroup;
+
   // Moderación Modal
   isStatusVisible = false;
   statusForm!: FormGroup;
@@ -72,10 +89,14 @@ export class ClaimsComponent implements OnInit {
     private claimsService: ClaimsService,
     private _claimImagessService: ClaimImagesService,
     private _claimCommentsService: ClaimCommentsService,
+    private _tendersService: TendersService,
+    private _tenderOptionsService: TenderOptionsService,
+    private _votesService: VotesService,
     private sessionService: SessionService,
     private message: NzMessageService
   ) {
     this.initStatusForm();
+    this.initTenderForms();
   }
 
   ngOnInit(): void {
@@ -88,6 +109,17 @@ export class ClaimsComponent implements OnInit {
   public initStatusForm(): void {
     this.statusForm = this.fb.group({
       cla_status: ['Abierto', [Validators.required]]
+    });
+  }
+
+  public initTenderForms(): void {
+    this.tenderForm = this.fb.group({
+      ten_votingdeadline: [null, [Validators.required]]
+    });
+    this.tenderOptionForm = this.fb.group({
+      tenopt_providername: ['', [Validators.required, Validators.minLength(3)]],
+      tenopt_amount: [null, [Validators.required, Validators.min(0.01)]],
+      tenopt_details: ['']
     });
   }
 
@@ -131,6 +163,7 @@ export class ClaimsComponent implements OnInit {
     if (claim.cla_uuid) {
       this.loadComments(claim.cla_uuid);
       this.loadImages(claim.cla_uuid);
+      this.loadTenderForClaim(claim.cla_uuid);
     }
   }
 
@@ -139,7 +172,219 @@ export class ClaimsComponent implements OnInit {
     this.selectedClaim = null;
     this.comments = [];
     this.claimImages = [];
+    this.activeTender = null;
+    this.tenderOptions = [];
+    this.votesList = [];
   }
+
+  public loadTenderForClaim(claUuid: string): void {
+    this.isTenderLoading = true;
+    this.activeTender = null;
+    this.tenderOptions = [];
+    this.votesList = [];
+
+    this._tendersService.getTenders(this.cmpUuid, claUuid).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data && res.data.length > 0) {
+          this.activeTender = res.data[0];
+          const tenUuid = this.activeTender.ten_uuid;
+          this.loadTenderOptionsAndVotes(claUuid, tenUuid);
+        } else {
+          this.isTenderLoading = false;
+        }
+      },
+      error: (err: any) => {
+        this.isTenderLoading = false;
+        console.error('Error al cargar licitaciones:', err);
+      }
+    });
+  }
+
+  public loadTenderOptionsAndVotes(claUuid: string, tenUuid: string): void {
+    this._tenderOptionsService.getTenderOptions(this.cmpUuid, claUuid, tenUuid).subscribe({
+      next: (resOpt: any) => {
+        if (resOpt.success) {
+          this.tenderOptions = resOpt.data || [];
+        }
+        this._votesService.getVotes(this.cmpUuid, claUuid, tenUuid).subscribe({
+          next: (resVotes: any) => {
+            this.isTenderLoading = false;
+            if (resVotes.success) {
+              this.votesList = resVotes.data || [];
+              this.calculateVotes();
+            }
+          },
+          error: (err: any) => {
+            this.isTenderLoading = false;
+            console.error('Error al cargar votos:', err);
+          }
+        });
+      },
+      error: (err: any) => {
+        this.isTenderLoading = false;
+        console.error('Error al cargar opciones de licitación:', err);
+      }
+    });
+  }
+
+  public calculateVotes(): void {
+    this.tenderOptions.forEach(opt => {
+      const optVotes = this.votesList.filter(v => v.tenopt_uuid === opt.tenopt_uuid);
+      opt.votesCount = optVotes.length;
+      opt.percentage = this.votesList.length > 0 ? (optVotes.length / this.votesList.length) * 100 : 0;
+    });
+  }
+
+  public startTender(): void {
+    if (this.tenderForm.valid && this.selectedClaim?.cla_uuid) {
+      this.isSavingTender = true;
+      const payload = {
+        cmp_uuid: this.cmpUuid,
+        cla_uuid: this.selectedClaim.cla_uuid,
+        ten_votingdeadline: this.tenderForm.value.ten_votingdeadline,
+        ten_status: 'Activa'
+      };
+
+      this._tendersService.saveTender(payload).subscribe({
+        next: (res: any) => {
+          this.isSavingTender = false;
+          if (res.success) {
+            this.message.success('Convocatoria de licitación iniciada con éxito.');
+            this.updateClaimStatusToLicitacion();
+            if (this.selectedClaim?.cla_uuid) {
+              this.loadTenderForClaim(this.selectedClaim.cla_uuid);
+            }
+          }
+        },
+        error: (err: any) => {
+          this.isSavingTender = false;
+          console.error(err);
+          this.message.error('Error al iniciar licitación.');
+        }
+      });
+    } else {
+      Object.values(this.tenderForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+    }
+  }
+
+  private updateClaimStatusToLicitacion(): void {
+    if (!this.selectedClaim?.cla_uuid) return;
+    const payload = {
+      ...this.selectedClaim,
+      cla_status: 'En Licitacion'
+    };
+    this.claimsService.updateClaim(this.cmpUuid, this.selectedClaim.cla_uuid, payload).subscribe({
+      next: () => {
+        this.loadClaims();
+        if (this.selectedClaim) this.selectedClaim.cla_status = 'En Licitacion';
+      },
+      error: (err) => console.error('Error actualizando estado del reclamo:', err)
+    });
+  }
+
+  public addTenderOption(): void {
+    if (this.tenderOptionForm.valid && this.selectedClaim?.cla_uuid && this.activeTender?.ten_uuid) {
+      this.isSavingTenderOption = true;
+      const formValue = this.tenderOptionForm.value;
+      const payload = {
+        cmp_uuid: this.cmpUuid,
+        cla_uuid: this.selectedClaim.cla_uuid,
+        ten_uuid: this.activeTender.ten_uuid,
+        tenopt_providername: formValue.tenopt_providername,
+        tenopt_amount: formValue.tenopt_amount,
+        tenopt_details: formValue.tenopt_details
+      };
+
+      this._tenderOptionsService.saveTenderOption(payload).subscribe({
+        next: (res: any) => {
+          this.isSavingTenderOption = false;
+          if (res.success) {
+            this.message.success('Presupuesto de proveedor agregado con éxito.');
+            this.tenderOptionForm.reset();
+            if (this.selectedClaim?.cla_uuid && this.activeTender?.ten_uuid) {
+              this.loadTenderOptionsAndVotes(this.selectedClaim.cla_uuid, this.activeTender.ten_uuid);
+            }
+          }
+        },
+        error: (err: any) => {
+          this.isSavingTenderOption = false;
+          console.error(err);
+          this.message.error('Error al agregar propuesta.');
+        }
+      });
+    } else {
+      Object.values(this.tenderOptionForm.controls).forEach(control => {
+        if (control.invalid) {
+          control.markAsDirty();
+          control.updateValueAndValidity({ onlySelf: true });
+        }
+      });
+    }
+  }
+
+  public deleteTenderOption(option: any): void {
+    if (!this.selectedClaim?.cla_uuid || !this.activeTender?.ten_uuid || !option.tenopt_uuid) return;
+    this._tenderOptionsService.deleteTenderOption(this.cmpUuid, this.selectedClaim.cla_uuid, this.activeTender.ten_uuid, option.tenopt_uuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.message.success('Propuesta eliminada con éxito.');
+          if (this.selectedClaim?.cla_uuid && this.activeTender?.ten_uuid) {
+            this.loadTenderOptionsAndVotes(this.selectedClaim.cla_uuid, this.activeTender.ten_uuid);
+          }
+        }
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.message.error('No se pudo eliminar la propuesta.');
+      }
+    });
+  }
+
+  public closeTender(status: 'Cerrada' | 'Desierta'): void {
+    if (!this.selectedClaim?.cla_uuid || !this.activeTender?.ten_uuid) return;
+    const payload = {
+      ...this.activeTender,
+      ten_status: status
+    };
+    this._tendersService.updateTender(this.cmpUuid, this.selectedClaim.cla_uuid, this.activeTender.ten_uuid, payload).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.message.success(`Convocatoria marcada como ${status}.`);
+          if (status === 'Cerrada') {
+            this.updateClaimStatusToEnObra();
+          }
+          if (this.selectedClaim?.cla_uuid) {
+            this.loadTenderForClaim(this.selectedClaim.cla_uuid);
+          }
+        }
+      },
+      error: (err: any) => {
+        console.error(err);
+        this.message.error('Error al cerrar licitación.');
+      }
+    });
+  }
+
+  private updateClaimStatusToEnObra(): void {
+    if (!this.selectedClaim?.cla_uuid) return;
+    const payload = {
+      ...this.selectedClaim,
+      cla_status: 'En Obra'
+    };
+    this.claimsService.updateClaim(this.cmpUuid, this.selectedClaim.cla_uuid, payload).subscribe({
+      next: () => {
+        this.loadClaims();
+        if (this.selectedClaim) this.selectedClaim.cla_status = 'En Obra';
+      },
+      error: (err) => console.error(err)
+    });
+  }
+
 
   public loadComments(claUuid: string): void {
     this._claimCommentsService.getClaimComments(this.cmpUuid, claUuid).subscribe({
