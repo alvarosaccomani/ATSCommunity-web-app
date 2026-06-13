@@ -5,6 +5,7 @@ import { UnitsComponent } from './units/units.component';
 import { ClaimsComponent } from './claims/claims.component';
 import { FeesComponent } from './fees/fees.component';
 import { TransactionsComponent } from './transactions/transactions.component';
+import { ChatComponent } from '../user/chat/chat.component';
 
 export const APPLICATION_ROUTES: Routes = [
     {
@@ -14,7 +15,8 @@ export const APPLICATION_ROUTES: Routes = [
             { path: 'units', component: UnitsComponent},
             { path: 'claims', component: ClaimsComponent},
             { path: 'fees', component: FeesComponent},
-            { path: 'transactions', component: TransactionsComponent}
+            { path: 'transactions', component: TransactionsComponent},
+            { path: 'chat', component: ChatComponent}
         ]
     }
 ];
