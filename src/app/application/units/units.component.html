@@ -65,6 +65,60 @@
         </tr>
       </tbody>
     </nz-table>
+
+    <!-- Vista Móvil: Listado de Unidades en Tarjetas -->
+    <div class="mobile-units-list" *ngIf="!isLoading">
+      <div class="unit-card" *ngFor="let data of units">
+        <div class="card-header">
+          <span class="unit-code">{{ data.uni_code }}</span>
+          <span class="category-badge">{{ data.uni_category }}</span>
+        </div>
+        <div class="card-body">
+          <div class="card-row">
+            <span class="label">Estado:</span>
+            <span class="value">
+              <nz-badge [nzStatus]="getBadgeStatus(data.uni_status)" [nzText]="formatStatus(data.uni_status)"></nz-badge>
+            </span>
+          </div>
+          <div class="card-row">
+            <span class="label">Coef. Expensas:</span>
+            <span class="value">{{ data.uni_financialcoefficient | number:'1.4-4' }}</span>
+          </div>
+          <div class="card-row">
+            <span class="label">Monto Base:</span>
+            <strong class="value amount">{{ data.uni_baseamountcustom | currency:'USD':'symbol':'1.2-2' }}</strong>
+          </div>
+          <div class="card-row" *ngIf="data.uni_locationdetails">
+            <span class="label">Ubicación:</span>
+            <span class="value">{{ data.uni_locationdetails }}</span>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button nz-button nzType="default" (click)="showAssignmentsModal(data)" class="btn-action assign-btn">
+            <nz-icon nzType="team" /> Habitantes
+          </button>
+          <button nz-button nzType="default" (click)="showEditModal(data)" class="btn-action edit-btn">
+            <nz-icon nzType="edit" /> Editar
+          </button>
+          <button
+            nz-button
+            nzType="primary"
+            nzDanger
+            nz-popconfirm
+            nzPopconfirmTitle="¿Estás seguro de eliminar esta unidad?"
+            (nzOnConfirm)="deleteUnit(data)"
+            class="btn-action delete-btn"
+          >
+            <nz-icon nzType="delete" /> Eliminar
+          </button>
+        </div>
+      </div>
+      
+      <div class="empty-state-card" *ngIf="units.length === 0">
+        <nz-icon nzType="info-circle" style="font-size: 28px; color: rgba(0, 0, 0, 0.25);"></nz-icon>
+        <p>No se encontraron unidades registradas.</p>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -243,6 +297,58 @@
           </tr>
         </tbody>
       </nz-table>
+
+      <!-- Vista Móvil: Vinculación de Habitantes en Tarjetas -->
+      <div class="mobile-assignments-list" *ngIf="!isAssignmentsLoading">
+        <div class="assignment-card" *ngFor="let rel of unitAssignments">
+          <div class="card-header">
+            <div class="user-info">
+              <strong class="user-name">{{ rel.usr?.usr_name }} {{ rel.usr?.usr_surname }}</strong>
+              <span class="user-email">{{ rel.usr?.usr_email || rel.usr?.usr_nick }}</span>
+            </div>
+            <span class="relation-badge" [ngClass]="rel.usruni_relationtype.toLowerCase().replace(' ', '-')">
+              {{ rel.usruni_relationtype }}
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="card-row">
+              <span class="label">Fecha de Inicio:</span>
+              <span class="value">{{ rel.usruni_startdate | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="card-row">
+              <span class="label">Estado:</span>
+              <nz-badge [nzStatus]="rel.usruni_isactive ? 'success' : 'default'" [nzText]="rel.usruni_isactive ? 'Activo' : 'Inactivo'"></nz-badge>
+            </div>
+          </div>
+          <div class="card-actions">
+            <button 
+              nz-button 
+              nzType="default" 
+              (click)="toggleAssignmentStatus(rel)" 
+              class="btn-action toggle-btn"
+            >
+              <nz-icon [nzType]="rel.usruni_isactive ? 'eye-invisible' : 'eye'" />
+              {{ rel.usruni_isactive ? 'Desactivar' : 'Activar' }}
+            </button>
+            <button
+              nz-button
+              nzType="primary"
+              nzDanger
+              nz-popconfirm
+              nzPopconfirmTitle="¿Eliminar definitivamente esta vinculación?"
+              (nzOnConfirm)="deleteAssignment(rel)"
+              class="btn-action delete-btn"
+            >
+              <nz-icon nzType="delete" /> Eliminar
+            </button>
+          </div>
+        </div>
+        
+        <div class="empty-state-card" *ngIf="unitAssignments.length === 0">
+          <nz-icon nzType="info-circle" style="font-size: 24px; color: rgba(0, 0, 0, 0.25);"></nz-icon>
+          <p>No hay habitantes asignados a esta unidad.</p>
+        </div>
+      </div>
     </div>
 
     <hr class="section-divider" />

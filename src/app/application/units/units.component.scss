@@ -308,6 +308,11 @@
   }
 }
 
+.mobile-units-list,
+.mobile-assignments-list {
+  display: none;
+}
+
 @media (max-width: 768px) {
   .units-header {
     flex-direction: column;
@@ -323,5 +328,279 @@
   .modal-form-row {
     flex-direction: column;
     gap: 0;
+  }
+
+  .table-container {
+    padding: 0;
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+
+  .units-table {
+    display: none !important;
+  }
+
+  .assignments-table {
+    display: none !important;
+  }
+
+  .mobile-units-list {
+    display: flex !important;
+    flex-direction: column;
+    gap: 16px;
+    margin-top: 16px;
+
+    .unit-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      border: 1px solid #e5e7eb;
+      border-left: 5px solid #1890ff;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+      &:active {
+        transform: scale(0.98);
+      }
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 8px;
+
+        .unit-code {
+          font-weight: 700;
+          font-size: 1.1rem;
+          color: #1f2937;
+        }
+
+        .category-badge {
+          font-size: 0.75rem;
+          font-weight: 600;
+          color: #1890ff;
+          background: #e6f7ff;
+          padding: 2px 8px;
+          border-radius: 4px;
+        }
+      }
+
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .card-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.88rem;
+
+          .label {
+            color: #6b7280;
+            font-weight: 500;
+          }
+
+          .value {
+            color: #1f2937;
+            font-weight: 500;
+
+            &.amount {
+              color: #10b981;
+              font-weight: 700;
+            }
+          }
+        }
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 8px;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 12px;
+
+        .btn-action {
+          flex: 1;
+          height: 38px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-weight: 600;
+          font-size: 0.8rem;
+        }
+      }
+    }
+
+    .empty-state-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 32px 16px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+
+      p {
+        margin: 12px 0 0 0;
+        font-size: 13.5px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+    }
+  }
+
+  .mobile-assignments-list {
+    display: flex !important;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 12px;
+
+    .assignment-card {
+      background: #ffffff;
+      border-radius: 10px;
+      padding: 14px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid #e5e7eb;
+      border-left: 5px solid #722ed1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+
+      .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        border-bottom: 1px solid #f3f4f6;
+        padding-bottom: 6px;
+
+        .user-info {
+          display: flex;
+          flex-direction: column;
+
+          .user-name {
+            font-weight: 600;
+            color: #1f2937;
+            font-size: 0.9rem;
+          }
+
+          .user-email {
+            font-size: 0.75rem;
+            color: #6b7280;
+          }
+        }
+
+        .relation-badge {
+          padding: 2px 8px;
+          border-radius: 12px;
+          font-size: 0.75rem;
+          font-weight: 600;
+
+          &.propietario {
+            background: rgba(24, 144, 255, 0.1);
+            color: #1890ff;
+          }
+
+          &.copropietario {
+            background: rgba(114, 46, 209, 0.1);
+            color: #722ed1;
+          }
+
+          &.inquilino {
+            background: rgba(250, 140, 22, 0.1);
+            color: #fa8c16;
+          }
+
+          &.socio-principal {
+            background: rgba(19, 194, 194, 0.1);
+            color: #13c2c2;
+          }
+        }
+      }
+
+      .card-body {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+
+        .card-row {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.8rem;
+
+          .label {
+            color: #6b7280;
+            font-weight: 500;
+          }
+
+          .value {
+            color: #1f2937;
+            font-weight: 500;
+          }
+        }
+      }
+
+      .card-actions {
+        display: flex;
+        gap: 8px;
+        margin-top: 6px;
+        border-top: 1px solid #f3f4f6;
+        padding-top: 10px;
+
+        .btn-action {
+          flex: 1;
+          height: 34px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 4px;
+          font-weight: 600;
+          font-size: 0.75rem;
+        }
+      }
+    }
+
+    .empty-state-card {
+      background: #fafafa;
+      border-radius: 10px;
+      padding: 24px 12px;
+      text-align: center;
+      border: 1px dashed #d9d9d9;
+
+      p {
+        margin: 8px 0 0 0;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+    }
+  }
+
+  .assignments-modal-content {
+    .new-assignment-section {
+      .modal-form-row {
+        flex-direction: column;
+        gap: 12px;
+
+        .form-third {
+          width: 100%;
+        }
+      }
+
+      .submit-assignment-row {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+        margin-top: 16px;
+
+        .assign-submit-btn {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    }
   }
 }
