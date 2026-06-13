@@ -1,10 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { ClaimsService } from '../../core/services/claims.service';
+import { ClaimImagesService } from '../../core/services/claim-images.service';
+import { ClaimCommentsService } from '../../core/services/claim-comments.service';
 import { UserUnitsService } from '../../core/services/user-units.service';
 import { SessionService } from '../../core/services/session.service';
-import { ClaimInterface } from '../../core/interfaces/claim/claim.interface';
+import { ClaimInterface } from '../../core/interfaces/claim';
+import { ClaimCommentInterface } from '../../core/interfaces/claim-comment';
 import { NzCardModule } from 'ng-zorro-antd/card';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzIconModule } from 'ng-zorro-antd/icon';
@@ -21,6 +24,7 @@ import { NzMessageModule, NzMessageService } from 'ng-zorro-antd/message';
   imports: [
     CommonModule,
     ReactiveFormsModule,
+    FormsModule,
     NzCardModule,
     NzButtonModule,
     NzIconModule,
@@ -44,12 +48,26 @@ export class MyClaimsComponent implements OnInit {
   isModalVisible = false;
   claimForm!: FormGroup;
 
+  // Detalle y Comentarios Modal
+  isDetailVisible = false;
+  selectedClaim: ClaimInterface | null = null;
+  comments: ClaimCommentInterface[] = [];
+  newCommentText = '';
+  isSubmittingComment = false;
+  claimImages: any[] = [];
+
+  // Imagen Adjunta en creación
+  selectedImageBase64: string | null = null;
+  imageFileName: string | null = null;
+
   cmpUuid = '';
   usrUuid = '';
 
   constructor(
     private fb: FormBuilder,
     private claimsService: ClaimsService,
+    private _claimImagessService: ClaimImagesService,
+    private _claimCommentsService: ClaimCommentsService,
     private userUnitsService: UserUnitsService,
     private sessionService: SessionService,
     private message: NzMessageService
@@ -68,14 +86,13 @@ export class MyClaimsComponent implements OnInit {
     } else {
       this.message.warning('No se pudo identificar tu sesión.');
     }
-  }
-
-  public initForm(): void {
+  }  public initForm(): void {
     this.claimForm = this.fb.group({
       cla_title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
       cla_description: ['', [Validators.required, Validators.minLength(10)]],
       cla_type: ['Reclamo', [Validators.required]],
-      uni_uuid: ['', [Validators.required]]
+      uni_uuid: ['', [Validators.required]],
+      cla_priority: ['Media', [Validators.required]]
     });
   }
 
@@ -100,9 +117,7 @@ export class MyClaimsComponent implements OnInit {
     this.userUnitsService.getUserUnits(this.cmpUuid, this.usrUuid).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
-          // Guardar las relaciones de unidades para asociar al reclamo
           this.userUnits = res.data || [];
-          // Si no tenemos detalles enriquecidos, de todas formas el servicio getClaims en el backend traerá el uni_code gracias al join.
         }
       },
       error: (err: any) => {
@@ -120,8 +135,11 @@ export class MyClaimsComponent implements OnInit {
       cla_title: '',
       cla_description: '',
       cla_type: 'Reclamo',
-      uni_uuid: this.userUnits[0]?.uni_uuid || ''
+      uni_uuid: this.userUnits[0]?.uni_uuid || '',
+      cla_priority: 'Media'
     });
+    this.selectedImageBase64 = null;
+    this.imageFileName = null;
     this.isModalVisible = true;
   }
 
@@ -129,11 +147,25 @@ export class MyClaimsComponent implements OnInit {
     this.isModalVisible = false;
   }
 
+  public onFileSelected(event: any): void {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        this.message.warning('La imagen no debe superar los 2MB.');
+        return;
+      }
+      this.imageFileName = file.name;
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.selectedImageBase64 = reader.result as string;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   public saveClaim(): void {
     if (this.claimForm.valid) {
       this.isSaving = true;
-
-      // Generar un UUID aleatorio para cla_uuid en el cliente
       const generatedClaimUuid = this.generateUUID();
 
       const payload = {
@@ -146,10 +178,35 @@ export class MyClaimsComponent implements OnInit {
 
       this.claimsService.saveClaim(payload).subscribe({
         next: (res: any) => {
-          this.isSaving = false;
-          this.isModalVisible = false;
-          this.message.success('Reporte creado con éxito');
-          this.loadClaims();
+          if (this.selectedImageBase64) {
+            const imgPayload = {
+              cmp_uuid: this.cmpUuid,
+              cla_uuid: generatedClaimUuid,
+              claimg_uuid: this.generateUUID(),
+              claimg_image: this.selectedImageBase64,
+              claimg_moment: 'Antes'
+            };
+            this._claimImagessService.saveClaimImage(imgPayload).subscribe({
+              next: () => {
+                this.isSaving = false;
+                this.isModalVisible = false;
+                this.message.success('Reporte creado con éxito');
+                this.loadClaims();
+              },
+              error: (err: any) => {
+                this.isSaving = false;
+                console.error(err);
+                this.message.warning('Reclamo creado, pero no se pudo subir la imagen.');
+                this.isModalVisible = false;
+                this.loadClaims();
+              }
+            });
+          } else {
+            this.isSaving = false;
+            this.isModalVisible = false;
+            this.message.success('Reporte creado con éxito');
+            this.loadClaims();
+          }
         },
         error: (err: any) => {
           this.isSaving = false;
@@ -165,6 +222,79 @@ export class MyClaimsComponent implements OnInit {
         }
       });
     }
+  }
+
+  // Detalle, Imágenes y Comentarios
+  public showDetailModal(claim: ClaimInterface): void {
+    this.selectedClaim = claim;
+    this.isDetailVisible = true;
+    this.newCommentText = '';
+    if (claim.cla_uuid) {
+      this.loadComments(claim.cla_uuid);
+      this.loadImages(claim.cla_uuid);
+    }
+  }
+
+  public closeDetailModal(): void {
+    this.isDetailVisible = false;
+    this.selectedClaim = null;
+    this.comments = [];
+    this.claimImages = [];
+  }
+
+  public loadComments(claUuid: string): void {
+    this._claimCommentsService.getClaimComments(this.cmpUuid, claUuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.comments = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar comentarios:', err);
+      }
+    });
+  }
+
+  public loadImages(claUuid: string): void {
+    this._claimImagessService.getClaimImages(this.cmpUuid, claUuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.claimImages = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar imágenes:', err);
+      }
+    });
+  }
+
+  public sendComment(): void {
+    if (!this.newCommentText.trim() || !this.selectedClaim?.cla_uuid) return;
+    this.isSubmittingComment = true;
+    const commentPayload = {
+      cmp_uuid: this.cmpUuid,
+      cla_uuid: this.selectedClaim.cla_uuid,
+      usr_uuid: this.usrUuid,
+      clac_text: this.newCommentText.trim()
+    };
+    this._claimCommentsService.saveClaimComment(commentPayload).subscribe({
+      next: (res: any) => {
+        this.isSubmittingComment = false;
+        this.newCommentText = '';
+        if (res.success) {
+          this.comments.push(res.data);
+        } else {
+          if (this.selectedClaim?.cla_uuid) {
+            this.loadComments(this.selectedClaim.cla_uuid);
+          }
+        }
+      },
+      error: (err: any) => {
+        this.isSubmittingComment = false;
+        console.error('Error al enviar comentario:', err);
+        this.message.error('No se pudo enviar el comentario.');
+      }
+    });
   }
 
   public getBadgeStatus(status: string): 'success' | 'error' | 'warning' | 'processing' | 'default' {

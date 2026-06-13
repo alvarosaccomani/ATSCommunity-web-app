@@ -10,11 +10,16 @@
   </div>
 
   <div class="cards-grid" *ngIf="!isLoading && claims.length > 0; else noClaims">
-    <div class="claim-card" *ngFor="let item of claims" [style.border-top-color]="getCardBorderColor(item.cla_type)">
+    <div class="claim-card clickable" *ngFor="let item of claims" [style.border-top-color]="getCardBorderColor(item.cla_type)" (click)="showDetailModal(item)">
       <div class="card-header-bar">
-        <span class="type-pill" [ngClass]="item.cla_type.toLowerCase()">
-          {{ item.cla_type }}
-        </span>
+        <div class="pill-group">
+          <span class="type-pill" [ngClass]="item.cla_type.toLowerCase()">
+            {{ item.cla_type }}
+          </span>
+          <span class="priority-badge-card" [ngClass]="item.cla_priority?.toLowerCase() || 'media'">
+            {{ item.cla_priority || 'Media' }}
+          </span>
+        </div>
         <span class="status-badge">
           <nz-badge [nzStatus]="getBadgeStatus(item.cla_status)" [nzText]="formatStatus(item.cla_status)"></nz-badge>
         </span>
@@ -101,10 +106,122 @@
       <nz-form-item>
         <nz-form-label nzRequired>Descripción Detallada</nz-form-label>
         <nz-form-control nzErrorTip="Describe el problema detalladamente (mínimo 10 caracteres)">
-          <textarea nz-input formControlName="cla_description" rows="5" placeholder="Brinda detalles del problema o propuesta para que el administrador pueda evaluarlo."></textarea>
+          <textarea nz-input formControlName="cla_description" rows="4" placeholder="Brinda detalles del problema o propuesta para que el administrador pueda evaluarlo."></textarea>
         </nz-form-control>
       </nz-form-item>
 
+      <div class="modal-form-row">
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Prioridad</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="cla_priority">
+              <nz-option nzValue="Baja" nzLabel="Baja (Sugerencias/Consultas)"></nz-option>
+              <nz-option nzValue="Media" nzLabel="Media (Desperfecto no urgente)"></nz-option>
+              <nz-option nzValue="Alta" nzLabel="Alta (Urgencia/Seguridad)"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label>Adjuntar Foto (Opcional)</nz-form-label>
+          <nz-form-control>
+            <div class="file-upload-wrapper">
+              <input type="file" id="claim-file" (change)="onFileSelected($event)" accept="image/*" class="file-input-hidden" />
+              <label for="claim-file" class="file-upload-btn">
+                <span nz-icon nzType="upload"></span>
+                {{ imageFileName ? imageFileName : 'Seleccionar imagen...' }}
+              </label>
+            </div>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
     </form>
   </div>
+</nz-modal>
+
+<!-- Modal de Detalle Completo de Reclamo -->
+<nz-modal
+  [(nzVisible)]="isDetailVisible"
+  nzTitle="Detalle de Incidente / Reporte"
+  (nzOnCancel)="closeDetailModal()"
+  [nzFooter]="null"
+  [nzWidth]="650"
+>
+  <ng-container *nzModalContent>
+    <div class="claim-detail-view" *ngIf="selectedClaim">
+      <div class="detail-header-row">
+        <div class="pill-group">
+          <span class="type-pill" [ngClass]="selectedClaim.cla_type.toLowerCase()">
+            {{ selectedClaim.cla_type }}
+          </span>
+          <span class="priority-badge-card" [ngClass]="selectedClaim.cla_priority?.toLowerCase() || 'media'">
+            {{ selectedClaim.cla_priority || 'Media' }}
+          </span>
+        </div>
+        <span class="status-badge-container">
+          <nz-badge [nzStatus]="getBadgeStatus(selectedClaim.cla_status)" [nzText]="formatStatus(selectedClaim.cla_status)"></nz-badge>
+        </span>
+      </div>
+
+      <h3 class="detail-title">{{ selectedClaim.cla_title }}</h3>
+
+      <div class="detail-section">
+        <h4>Descripción</h4>
+        <p class="detail-description">{{ selectedClaim.cla_description }}</p>
+      </div>
+
+      <div class="detail-grid-compact">
+        <div class="grid-item">
+          <span class="grid-label"><nz-icon nzType="home" /> Unidad:</span>
+          <strong class="grid-value">{{ selectedClaim.unit?.uni_code || 'Espacio Común' }}</strong>
+        </div>
+        <div class="grid-item">
+          <span class="grid-label"><nz-icon nzType="calendar" /> Reportado:</span>
+          <span class="grid-value">{{ selectedClaim.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <!-- Evidencia Fotográfica -->
+      <div class="evidence-section" *ngIf="claimImages.length > 0">
+        <h4>Evidencia Fotográfica</h4>
+        <div class="images-grid">
+          <div class="image-card" *ngFor="let img of claimImages">
+            <span class="moment-tag" [ngClass]="img.claimg_moment.toLowerCase()">
+              {{ img.claimg_moment === 'Antes' ? 'Antes' : 'Reparado' }}
+            </span>
+            <div class="image-wrapper">
+              <img [src]="img.claimg_image" alt="Evidencia" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr class="divider" />
+
+      <!-- Historial de Conversación / Comentarios -->
+      <div class="comments-container">
+        <h4>Historial de Conversación</h4>
+        <div class="comments-feed">
+          <div *ngFor="let c of comments" class="comment-bubble" [ngClass]="{'self': c.usr_uuid === usrUuid}">
+            <div class="comment-metadata">
+              <strong class="author-name">{{ c.usr?.usr_name }} {{ c.usr?.usr_surname }}</strong>
+              <span class="comment-time">{{ c.clac_createdat | date:'dd/MM HH:mm' }}</span>
+            </div>
+            <div class="comment-body">{{ c.clac_text }}</div>
+          </div>
+          <div class="no-comments" *ngIf="comments.length === 0">
+            No hay comentarios aún en este reporte. Puedes escribir tu mensaje en la casilla inferior.
+          </div>
+        </div>
+
+        <div class="comment-compose">
+          <input nz-input [(ngModel)]="newCommentText" placeholder="Escribe un mensaje para la administración..." (keyup.enter)="sendComment()" [disabled]="isSubmittingComment" />
+          <button nz-button nzType="primary" (click)="sendComment()" [nzLoading]="isSubmittingComment" [disabled]="!newCommentText.trim()">
+            <span nz-icon nzType="send"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </ng-container>
 </nz-modal>
