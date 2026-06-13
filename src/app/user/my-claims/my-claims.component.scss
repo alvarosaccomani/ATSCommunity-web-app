@@ -258,6 +258,23 @@
     flex-direction: column;
     gap: 0;
   }
+
+  .cards-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .claim-card {
+    height: auto;
+    min-height: 220px;
+    
+    .card-body {
+      .claim-description {
+        -webkit-line-clamp: initial;
+        margin-bottom: 16px;
+      }
+    }
+  }
 }
 
 // Clickable Cards
