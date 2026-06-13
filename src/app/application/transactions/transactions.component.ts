@@ -5,6 +5,7 @@ import { TransactionsService } from '../../core/services/transactions.service';
 import { SessionService } from '../../core/services/session.service';
 import { UnitsService } from '../../core/services/units.service';
 import { FeesService } from '../../core/services/fees.service';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { TransactionInterface } from '../../core/interfaces/transaction/transaction.interface';
 import { UnitInterface } from '../../core/interfaces/unit';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -52,7 +53,8 @@ export class TransactionsComponent implements OnInit {
     private sessionService: SessionService,
     private unitsService: UnitsService,
     private feesService: FeesService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private notificationsService: NotificationsService
   ) {}
 
   ngOnInit(): void {
@@ -131,6 +133,17 @@ export class TransactionsComponent implements OnInit {
 
     this.transactionsService.updateTransaction(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, tra_uuid, updatePayload).subscribe({
       next: () => {
+        const notification = {
+          usr_uuid: usr_uuid,
+          cmp_uuid: cmp_uuid,
+          ntf_title: 'Pago Aprobado',
+          ntf_message: `Tu comprobante de pago por $${tra.tra_totalamount} para la expensa del periodo ${tra.fee?.fee_period || ''} ha sido aprobado con éxito.`,
+          ntf_type: 'success' as const,
+          ntf_isread: false,
+          ntf_actionurl: '/user/my-transactions'
+        };
+        this.notificationsService.saveNotification(notification).subscribe();
+
         const feePayload = {
           fee_period: tra.fee?.fee_period,
           fee_amount: tra.fee?.fee_amount,
@@ -176,6 +189,17 @@ export class TransactionsComponent implements OnInit {
 
     this.transactionsService.updateTransaction(cmp_uuid, usr_uuid, uni_uuid, usruni_uuid, fee_uuid, tra_uuid, updatePayload).subscribe({
       next: () => {
+        const notification = {
+          usr_uuid: usr_uuid,
+          cmp_uuid: cmp_uuid,
+          ntf_title: 'Pago Rechazado',
+          ntf_message: `El comprobante de pago por $${tra.tra_totalamount} para la expensa del periodo ${tra.fee?.fee_period || ''} ha sido rechazado por la administración.`,
+          ntf_type: 'error' as const,
+          ntf_isread: false,
+          ntf_actionurl: '/user/my-transactions'
+        };
+        this.notificationsService.saveNotification(notification).subscribe();
+
         const feePayload = {
           fee_period: tra.fee?.fee_period,
           fee_amount: tra.fee?.fee_amount,
