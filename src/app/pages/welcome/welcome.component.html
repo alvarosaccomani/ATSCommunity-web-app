@@ -363,6 +363,32 @@
                   </tr>
                 </tbody>
               </nz-table>
+
+              <!-- Vista Móvil: Pagos Recientes en Formato Compacto -->
+              <div class="mobile-recent-payments">
+                <div class="payment-item" *ngFor="let data of residentPayments">
+                  <div class="payment-main-info">
+                    <div class="main-row">
+                      <strong class="unit-code">{{ data.unit?.uni_code }}</strong>
+                      <strong class="amount">{{ data.tra_totalamount | currency:'USD':'symbol':'1.0-2' }}</strong>
+                    </div>
+                    <div class="date-row">
+                      <span class="date">{{ data.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="period-row">
+                      <span class="period-badge">Período {{ data.fee?.fee_period || 'Expensa' }}</span>
+                    </div>
+                  </div>
+                  <div class="payment-status-centered">
+                    <nz-badge [nzStatus]="getBadgeStatus(data.tra_status)" [nzText]="formatStatus(data.tra_status)"></nz-badge>
+                  </div>
+                </div>
+                
+                <div class="empty-state-mobile" *ngIf="residentPayments.length === 0">
+                  <span nz-icon nzType="shopping" style="font-size: 24px; color: #bfbfbf; margin-bottom: 4px; display: block;"></span>
+                  No has registrado transacciones de pago todavía.
+                </div>
+              </div>
             </div>
           </nz-card>
         </div>
