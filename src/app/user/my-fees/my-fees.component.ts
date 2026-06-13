@@ -76,17 +76,9 @@ export class MyFeesComponent implements OnInit {
     try {
       const res: any = await lastValueFrom(this.userUnitsService.getUserUnits(this.cmpUuid, this.usrUuid));
       if (res.success && res.data) {
-        const mappings = res.data;
-        const list = [];
-        for (const m of mappings) {
-          if (m.uni_uuid) {
-            const unitRes: any = await lastValueFrom(this.unitsService.getUnitById(this.cmpUuid, m.uni_uuid));
-            if (unitRes.success) {
-              list.push(unitRes.data);
-            }
-          }
-        }
-        this.myUnits = list;
+        this.myUnits = res.data
+          .filter((m: any) => m.unit)
+          .map((m: any) => m.unit);
       }
     } catch (err) {
       console.error('Error al cargar unidades del habitante:', err);
