@@ -1,0 +1,681 @@
+/* Custom Premium Styles for ATSCommunity Welcome Dashboard */
+
+.dashboard-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  background-color: #f8fafc;
+}
+
+/* 1. Welcome Header Banner */
+.welcome-banner {
+  position: relative;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  padding: 36px 40px;
+  color: #ffffff;
+  overflow: hidden;
+  box-shadow: 0 10px 25px -5px rgba(59, 130, 246, 0.3);
+  display: flex;
+  align-items: center;
+
+  .banner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+    z-index: 1;
+  }
+
+  .banner-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+  }
+
+  .user-greeting {
+    .greeting-badge {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(4px);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    h1 {
+      color: #ffffff;
+      font-size: 2.2rem;
+      font-weight: 800;
+      margin: 0 0 8px 0;
+      letter-spacing: -0.025em;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.85);
+      font-size: 1.05rem;
+      margin: 0;
+      font-weight: 400;
+
+      strong {
+        color: #ffffff;
+        font-weight: 600;
+      }
+    }
+  }
+
+  .banner-icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    
+    .banner-bg-icon {
+      font-size: 40px;
+      color: #ffffff;
+      opacity: 0.9;
+    }
+  }
+}
+
+/* 2. KPI Cards Grid */
+.kpi-grid {
+  margin-bottom: 8px;
+}
+
+.kpi-card {
+  position: relative;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  cursor: pointer;
+
+  &.glassmorphic {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: rgba(59, 130, 246, 0.3);
+  }
+
+  &.highlight {
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.03), #ffffff);
+    border-color: rgba(239, 68, 68, 0.2);
+    .kpi-icon-container {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+  }
+
+  &.danger {
+    background: linear-gradient(to right, rgba(239, 68, 68, 0.04), #ffffff);
+    border-color: rgba(239, 68, 68, 0.2);
+    .kpi-icon-container {
+      background: rgba(239, 68, 68, 0.1);
+      color: #ef4444;
+    }
+    .kpi-value {
+      color: #ef4444;
+    }
+  }
+
+  .kpi-card-content {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .kpi-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #eff6ff;
+    color: #3b82f6;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .kpi-data {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    .kpi-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.025em;
+    }
+
+    .kpi-value {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1e293b;
+      line-height: 1.2;
+      margin: 4px 0;
+    }
+
+    .kpi-subtext {
+      font-size: 11px;
+      color: #94a3b8;
+      font-weight: 500;
+    }
+  }
+
+  /* Accents line on the cards edge */
+  .card-accent-line {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    
+    &.green { background: #10b981; }
+    &.yellow { background: #f59e0b; }
+    &.red { background: #ef4444; }
+    &.indigo { background: #6366f1; }
+    &.blue { background: #3b82f6; }
+  }
+
+  .card-btn {
+    width: calc(100% - 48px);
+    margin: 0 24px 20px 24px;
+    border-radius: 8px;
+    font-weight: 600;
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+  }
+}
+
+/* Linear collection progress indicator on revenue card */
+.collection-progress-bar {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: #f1f5f9;
+
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, #3b82f6, #6366f1);
+    border-radius: 0 4px 4px 0;
+    transition: width 1s ease-out;
+  }
+}
+
+/* SVG Chart circular styles inside cards */
+.kpi-svg-container {
+  width: 52px;
+  height: 52px;
+  position: relative;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &.progress-svg {
+    width: 64px;
+    height: 64px;
+  }
+
+  .circular-chart {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+  }
+
+  .circle-bg {
+    fill: none;
+    stroke: #f1f5f9;
+    stroke-width: 3.5;
+  }
+
+  .circle {
+    fill: none;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+    transition: stroke-dasharray 1s ease-in-out;
+  }
+
+  .percentage {
+    fill: #1e293b;
+    font-family: sans-serif;
+    font-size: 8px;
+    font-weight: 700;
+    text-anchor: middle;
+  }
+}
+
+/* 3. Feeds section (Claims & Payments) */
+.feed-row {
+  margin-top: 12px;
+}
+
+.feed-card {
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  min-height: 380px;
+
+  &.glassmorphic {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  .feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 16px;
+
+    .feed-title-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .header-icon {
+        font-size: 20px;
+        color: #3b82f6;
+      }
+      
+      .text-amber {
+        color: #d97706;
+      }
+
+      h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        color: #0f172a;
+      }
+    }
+
+    button {
+      padding: 0;
+      font-size: 13px;
+      font-weight: 600;
+    }
+  }
+
+  .feed-content {
+    position: relative;
+  }
+}
+
+/* Empty feed styling */
+.empty-feed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  color: #64748b;
+  gap: 12px;
+
+  p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
+  }
+}
+
+/* Feed lists standard styling */
+.recent-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .list-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #f8fafc;
+    border: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+    gap: 16px;
+
+    &.clickable-item {
+      cursor: pointer;
+      &:hover {
+        background: #f1f5f9;
+        border-color: #cbd5e1;
+        transform: translateX(4px);
+      }
+    }
+
+    .item-status-indicator {
+      width: 4px;
+      height: 40px;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .item-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      background: #eff6ff;
+      color: #3b82f6;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+
+    .item-body {
+      display: flex;
+      flex-direction: column;
+      flex-grow: 1;
+      gap: 4px;
+      overflow: hidden;
+
+      .item-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+
+        .item-title-text {
+          font-weight: 600;
+          color: #1e293b;
+          font-size: 14px;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+
+        .payment-amount {
+          font-weight: 700;
+          color: #0f172a;
+          font-size: 14px;
+          flex-shrink: 0;
+        }
+      }
+
+      .item-meta-data {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: #64748b;
+        gap: 6px;
+
+        .dot-separator {
+          color: #cbd5e1;
+          font-size: 8px;
+        }
+      }
+    }
+
+    .item-action {
+      font-size: 14px;
+      color: #94a3b8;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-shrink: 0;
+
+      .action-tag {
+        font-size: 11px;
+        font-weight: 600;
+        color: #3b82f6;
+        background: rgba(59, 130, 246, 0.08);
+        padding: 2px 8px;
+        border-radius: 4px;
+      }
+    }
+  }
+}
+
+/* 4. Quick actions grid (Buttons) */
+.quick-actions-section {
+  margin-top: 12px;
+
+  h3 {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 16px;
+  }
+
+  .action-btn-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px 16px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    text-align: center;
+    gap: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.03);
+
+    .action-icon {
+      font-size: 26px;
+      color: #3b82f6;
+      transition: transform 0.2s ease;
+    }
+
+    span:last-child {
+      font-size: 13px;
+      font-weight: 600;
+      color: #334155;
+    }
+
+    &:hover {
+      border-color: #3b82f6;
+      box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.1), 0 4px 6px -2px rgba(59, 130, 246, 0.05);
+      background: linear-gradient(to bottom, #ffffff, #eff6ff);
+
+      .action-icon {
+        transform: scale(1.1);
+      }
+    }
+  }
+}
+
+/* 5. Resident Shortcuts */
+.shortcut-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shortcut-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  .shortcut-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    font-size: 18px;
+    flex-shrink: 0;
+
+    &.bg-yellow { background: #fef3c7; color: #d97706; }
+    &.bg-green { background: #d1fae5; color: #059669; }
+    &.bg-indigo { background: #e0e7ff; color: #4f46e5; }
+    &.bg-blue { background: #e0f2fe; color: #0284c7; }
+  }
+
+  .shortcut-desc {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+
+    .shortcut-title {
+      font-size: 13.5px;
+      font-weight: 700;
+      color: #1e293b;
+    }
+
+    .shortcut-sub {
+      font-size: 11px;
+      color: #64748b;
+    }
+  }
+
+  .arrow-icon {
+    font-size: 14px;
+    color: #cbd5e1;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    transform: translateX(4px);
+
+    .arrow-icon {
+      color: #64748b;
+      transform: translateX(2px);
+    }
+  }
+}
+
+/* 6. Premium Tables styling */
+.premium-table {
+  background: transparent !important;
+
+  ::ng-deep {
+    .ant-table {
+      background: transparent !important;
+    }
+    .ant-table-thead > tr > th {
+      background: #f8fafc !important;
+      color: #475569 !important;
+      font-weight: 600 !important;
+      font-size: 12px;
+      border-bottom: 1px solid #e2e8f0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .ant-table-tbody > tr > td {
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 13px;
+      color: #334155;
+      padding: 14px 16px;
+    }
+  }
+
+  .table-row {
+    transition: background-color 0.2s ease;
+    &:hover {
+      background-color: rgba(248, 250, 252, 0.7) !important;
+    }
+  }
+
+  .amount-cell {
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .empty-table-cell {
+    text-align: center;
+    padding: 40px 20px !important;
+    color: #64748b;
+    font-size: 13px;
+  }
+}
+
+/* 7. Keyframes Animations */
+.animated {
+  animation-duration: 0.6s;
+  animation-fill-mode: both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 15px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.fadeInUp {
+  animation-name: fadeInUp;
+}
+
+/* Responsive adjustment */
+@media (max-width: 768px) {
+  .dashboard-container {
+    padding: 16px;
+    gap: 20px;
+  }
+
+  .welcome-banner {
+    padding: 24px;
+    h1 {
+      font-size: 1.7rem;
+    }
+    p {
+      font-size: 0.95rem;
+    }
+    .banner-icon-wrapper {
+      display: none; /* Hide decorative icon on mobile to save space */
+    }
+  }
+
+  .kpi-card .kpi-card-content {
+    padding: 16px;
+  }
+}

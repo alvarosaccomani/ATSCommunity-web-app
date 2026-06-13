@@ -1,1 +1,432 @@
-<p>welcome works!</p>
+<div class="dashboard-container">
+  <!-- Top Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="banner-overlay"></div>
+    <div class="banner-content">
+      <div class="user-greeting">
+        <span class="greeting-badge">Consorcio Activo</span>
+        <h1>¡Hola, {{ userName }}!</h1>
+        <p>Bienvenido de vuelta a <strong>{{ companyName }}</strong>. Aquí tienes el resumen general de hoy.</p>
+      </div>
+      <div class="banner-icon-wrapper">
+        <span nz-icon nzType="dashboard" nzTheme="outline" class="banner-bg-icon"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <ng-template #loadingSkeleton>
+    <div class="skeleton-container">
+      <div nz-row [nzGutter]="24">
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6" *ngFor="let i of [1,2,3,4]">
+          <nz-card [nzBordered]="false" class="kpi-card loading">
+            <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 2 }"></nz-skeleton>
+          </nz-card>
+        </div>
+      </div>
+      <div nz-row [nzGutter]="24" class="feed-row">
+        <div nz-col [nzXs]="24" [nzMd]="12">
+          <nz-card [nzBordered]="false" class="feed-card loading">
+            <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 4 }"></nz-skeleton>
+          </nz-card>
+        </div>
+        <div nz-col [nzXs]="24" [nzMd]="12">
+          <nz-card [nzBordered]="false" class="feed-card loading">
+            <nz-skeleton [nzActive]="true" [nzParagraph]="{ rows: 4 }"></nz-skeleton>
+          </nz-card>
+        </div>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Main Content Dashboard -->
+  <ng-container *ngIf="!isLoading; else loadingSkeleton">
+
+    <!-- ============================================== -->
+    <!-- ADMINISTRATOR DASHBOARD VIEW                   -->
+    <!-- ============================================== -->
+    <div *ngIf="isAdmin" class="dashboard-view admin-view animated fadeInUp">
+      
+      <!-- KPI Metric Cards Grid -->
+      <div nz-row [nzGutter]="24" class="kpi-grid">
+        <!-- Card 1: Units -->
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic units-card" routerLink="/application/units">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="home" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Unidades Activas</span>
+                <span class="kpi-value">{{ adminStats.totalUnits }}</span>
+                <span class="kpi-subtext">Registradas en el sistema</span>
+              </div>
+            </div>
+            <div class="card-accent-line green"></div>
+          </nz-card>
+        </div>
+
+        <!-- Card 2: Active Claims -->
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic claims-card" routerLink="/application/claims">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="tool" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Reclamos Activos</span>
+                <span class="kpi-value">{{ adminStats.activeClaims }}</span>
+                <span class="kpi-subtext">Incidentes sin finalizar</span>
+              </div>
+              <div class="kpi-svg-container">
+                <!-- Tiny Native SVG Circular Progress -->
+                <svg class="circular-chart" viewBox="0 0 36 36">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle" [attr.stroke-dasharray]="adminStats.activeClaims > 0 ? '60, 100' : '0, 100'" stroke="#faad14" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                </svg>
+              </div>
+            </div>
+            <div class="card-accent-line yellow"></div>
+          </nz-card>
+        </div>
+
+        <!-- Card 3: Payments Pending Audit -->
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic pending-card" [class.highlight]="adminStats.pendingPayments > 0" routerLink="/application/transactions">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="audit" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Pagos por Auditar</span>
+                <span class="kpi-value">{{ adminStats.pendingPayments }}</span>
+                <span class="kpi-subtext" *ngIf="adminStats.pendingPayments > 0">¡Validación pendiente!</span>
+                <span class="kpi-subtext" *ngIf="adminStats.pendingPayments === 0">Al día con las auditorías</span>
+              </div>
+            </div>
+            <div class="card-accent-line red"></div>
+          </nz-card>
+        </div>
+
+        <!-- Card 4: Monthly Revenue / Collection Rate -->
+        <div nz-col [nzXs]="24" [nzSm]="12" [nzMd]="6">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic revenue-card" routerLink="/application/fees">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="dollar" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Recaudación Total</span>
+                <span class="kpi-value">{{ adminStats.monthlyRevenue | currency:'USD':'symbol':'1.0-2' }}</span>
+                <span class="kpi-subtext">Tasa de cobranza: {{ adminStats.collectionRate }}%</span>
+              </div>
+            </div>
+            <div class="collection-progress-bar">
+              <div class="progress-fill" [style.width.%]="adminStats.collectionRate"></div>
+            </div>
+            <div class="card-accent-line indigo"></div>
+          </nz-card>
+        </div>
+      </div>
+
+      <!-- Feed Rows (Claims and Payments pending validation) -->
+      <div nz-row [nzGutter]="24" class="feed-row">
+        <!-- Col 1: Recent Claims Feed -->
+        <div nz-col [nzXs]="24" [nzLg]="12">
+          <nz-card [nzBordered]="false" class="feed-card glassmorphic">
+            <div class="feed-header">
+              <div class="feed-title-container">
+                <span nz-icon nzType="tool" nzTheme="outline" class="header-icon"></span>
+                <h3>Reclamos Recientes</h3>
+              </div>
+              <button nz-button nzType="link" routerLink="/application/claims">Ver Todos</button>
+            </div>
+            
+            <div class="feed-content">
+              <div class="empty-feed" *ngIf="recentClaims.length === 0">
+                <span nz-icon nzType="check-circle" style="font-size: 36px; color: #52c41a;"></span>
+                <p>No hay reclamos registrados recientemente.</p>
+              </div>
+
+              <ul class="recent-list" *ngIf="recentClaims.length > 0">
+                <li class="list-item clickable-item" *ngFor="let claim of recentClaims" [routerLink]="['/application/claims']">
+                  <div class="item-status-indicator" [style.background-color]="getPriorityColor(claim.cla_priority)"></div>
+                  <div class="item-body">
+                    <div class="item-main">
+                      <span class="item-title-text">{{ claim.cla_title }}</span>
+                      <nz-badge [nzStatus]="getBadgeStatus(claim.cla_status)" [nzText]="formatStatus(claim.cla_status)"></nz-badge>
+                    </div>
+                    <div class="item-meta-data">
+                      <span>Unidad {{ claim.unit?.uni_code }}</span>
+                      <span class="dot-separator">•</span>
+                      <span>Prioridad {{ claim.cla_priority }}</span>
+                      <span class="dot-separator">•</span>
+                      <span>{{ claim.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                  </div>
+                  <div class="item-action">
+                    <span nz-icon nzType="right" nzTheme="outline"></span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </nz-card>
+        </div>
+
+        <!-- Col 2: Pending Transactions Audit Feed -->
+        <div nz-col [nzXs]="24" [nzLg]="12">
+          <nz-card [nzBordered]="false" class="feed-card glassmorphic">
+            <div class="feed-header">
+              <div class="feed-title-container">
+                <span nz-icon nzType="audit" nzTheme="outline" class="header-icon"></span>
+                <h3>Validación de Pagos</h3>
+              </div>
+              <button nz-button nzType="link" routerLink="/application/transactions">Ir a Transacciones</button>
+            </div>
+
+            <div class="feed-content">
+              <div class="empty-feed" *ngIf="pendingTransactions.length === 0">
+                <span nz-icon nzType="like" style="font-size: 36px; color: #1890ff;"></span>
+                <p>No tienes comprobantes de pago pendientes de validar.</p>
+              </div>
+
+              <ul class="recent-list" *ngIf="pendingTransactions.length > 0">
+                <li class="list-item clickable-item" *ngFor="let tra of pendingTransactions" [routerLink]="['/application/transactions']">
+                  <div class="item-avatar">
+                    <span nz-icon nzType="wallet" nzTheme="outline"></span>
+                  </div>
+                  <div class="item-body">
+                    <div class="item-main">
+                      <span class="item-title-text">{{ tra.usr?.usr_name }} {{ tra.usr?.usr_surname }}</span>
+                      <span class="payment-amount">{{ tra.tra_totalamount | currency:'USD':'symbol':'1.0-2' }}</span>
+                    </div>
+                    <div class="item-meta-data">
+                      <span>Unidad {{ tra.unit?.uni_code }}</span>
+                      <span class="dot-separator">•</span>
+                      <span>Período {{ tra.fee?.fee_period }}</span>
+                      <span class="dot-separator">•</span>
+                      <span>{{ tra.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                  </div>
+                  <div class="item-action">
+                    <span class="action-tag">Validar</span>
+                    <span nz-icon nzType="right" nzTheme="outline"></span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </nz-card>
+        </div>
+      </div>
+
+      <!-- Quick Actions Grid -->
+      <div class="quick-actions-section">
+        <h3>Atajos de Administración</h3>
+        <div nz-row [nzGutter]="16">
+          <div nz-col [nzXs]="12" [nzSm]="6">
+            <div class="action-btn-card" routerLink="/application/fees">
+              <span nz-icon nzType="plus-circle" nzTheme="outline" class="action-icon"></span>
+              <span>Emitir Expensas</span>
+            </div>
+          </div>
+          <div nz-col [nzXs]="12" [nzSm]="6">
+            <div class="action-btn-card" routerLink="/application/transactions">
+              <span nz-icon nzType="audit" nzTheme="outline" class="action-icon"></span>
+              <span>Auditar Pagos</span>
+            </div>
+          </div>
+          <div nz-col [nzXs]="12" [nzSm]="6">
+            <div class="action-btn-card" routerLink="/application/claims">
+              <span nz-icon nzType="alert" nzTheme="outline" class="action-icon"></span>
+              <span>Ver Incidencias</span>
+            </div>
+          </div>
+          <div nz-col [nzXs]="12" [nzSm]="6">
+            <div class="action-btn-card" routerLink="/application/units">
+              <span nz-icon nzType="shop" nzTheme="outline" class="action-icon"></span>
+              <span>Ver Unidades</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================== -->
+    <!-- RESIDENT DASHBOARD VIEW                        -->
+    <!-- ============================================== -->
+    <div *ngIf="!isAdmin" class="dashboard-view resident-view animated fadeInUp">
+      
+      <!-- KPI Metric Cards Grid -->
+      <div nz-row [nzGutter]="24" class="kpi-grid">
+        <!-- Card 1: Pending Balance -->
+        <div nz-col [nzXs]="24" [nzMd]="8">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic balance-card" [class.danger]="residentStats.totalPendingBalance > 0" routerLink="/user/my-fees">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="wallet" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Mi Saldo Pendiente</span>
+                <span class="kpi-value">{{ residentStats.totalPendingBalance | currency:'USD':'symbol':'1.0-2' }}</span>
+                <span class="kpi-subtext" *ngIf="residentStats.totalPendingBalance > 0">Tienes expensas por abonar</span>
+                <span class="kpi-subtext" *ngIf="residentStats.totalPendingBalance === 0">¡Felicidades! Estás al día</span>
+              </div>
+            </div>
+            <button nz-button nzType="primary" class="card-btn" *ngIf="residentStats.totalPendingBalance > 0">Pagar Ahora</button>
+            <div class="card-accent-line" [class.red]="residentStats.totalPendingBalance > 0" [class.green]="residentStats.totalPendingBalance === 0"></div>
+          </nz-card>
+        </div>
+
+        <!-- Card 2: Active Claims Progress -->
+        <div nz-col [nzXs]="24" [nzMd]="8">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic resident-claims-card" routerLink="/user/my-claims">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="tool" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Avance de Reclamos</span>
+                <span class="kpi-value">{{ residentStats.completedClaims }}/{{ residentStats.totalClaims }}</span>
+                <span class="kpi-subtext">Resueltos • {{ residentStats.activeClaims }} activos</span>
+              </div>
+              <div class="kpi-svg-container progress-svg">
+                <!-- Native SVG Circular Progress Chart -->
+                <svg class="circular-chart" viewBox="0 0 36 36">
+                  <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path class="circle" [attr.stroke-dasharray]="residentStats.claimsProgress + ', 100'" stroke="#1890ff" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <text x="18" y="20.35" class="percentage">{{ residentStats.claimsProgress }}%</text>
+                </svg>
+              </div>
+            </div>
+            <div class="card-accent-line blue"></div>
+          </nz-card>
+        </div>
+
+        <!-- Card 3: Assigned Units -->
+        <div nz-col [nzXs]="24" [nzMd]="8">
+          <nz-card [nzBordered]="false" class="kpi-card glassmorphic my-units-card" routerLink="/user/my-units">
+            <div class="kpi-card-content">
+              <div class="kpi-icon-container">
+                <span nz-icon nzType="home" nzTheme="outline"></span>
+              </div>
+              <div class="kpi-data">
+                <span class="kpi-title">Mis Unidades</span>
+                <span class="kpi-value">{{ residentStats.assignedUnitsCount }}</span>
+                <span class="kpi-subtext">Unidades funcionales vinculadas</span>
+              </div>
+            </div>
+            <div class="card-accent-line green"></div>
+          </nz-card>
+        </div>
+      </div>
+
+      <!-- Split section: Recent Payments and Quick Actions -->
+      <div nz-row [nzGutter]="24" class="feed-row">
+        <!-- Col 1: Recent Payments Table -->
+        <div nz-col [nzXs]="24" [nzLg]="16">
+          <nz-card [nzBordered]="false" class="feed-card glassmorphic">
+            <div class="feed-header">
+              <div class="feed-title-container">
+                <span nz-icon nzType="file-text" nzTheme="outline" class="header-icon"></span>
+                <h3>Historial de Pagos Recientes</h3>
+              </div>
+              <button nz-button nzType="link" routerLink="/user/my-transactions">Ver Todo</button>
+            </div>
+
+            <div class="feed-content">
+              <nz-table #basicTable [nzData]="residentPayments" [nzFrontPagination]="false" [nzShowPagination]="false" [nzSize]="'middle'" class="premium-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>Unidad</th>
+                    <th>Período</th>
+                    <th>Monto</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let data of basicTable.data" class="table-row">
+                    <td>{{ data.tra_createdat | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>{{ data.unit?.uni_code }}</td>
+                    <td>{{ data.fee?.fee_period || 'Expensa' }}</td>
+                    <td class="amount-cell">{{ data.tra_totalamount | currency:'USD':'symbol':'1.0-2' }}</td>
+                    <td>
+                      <nz-badge [nzStatus]="getBadgeStatus(data.tra_status)" [nzText]="formatStatus(data.tra_status)"></nz-badge>
+                    </td>
+                  </tr>
+                  <tr *ngIf="residentPayments.length === 0">
+                    <td colspan="5" class="empty-table-cell">
+                      <span nz-icon nzType="shopping" style="font-size: 32px; display: block; margin-bottom: 8px; color: #bfbfbf;"></span>
+                      No has registrado transacciones de pago todavía.
+                    </td>
+                  </tr>
+                </tbody>
+              </nz-table>
+            </div>
+          </nz-card>
+        </div>
+
+        <!-- Col 2: Shortcuts / Quick actions -->
+        <div nz-col [nzXs]="24" [nzLg]="8">
+          <nz-card [nzBordered]="false" class="feed-card glassmorphic">
+            <div class="feed-header">
+              <div class="feed-title-container">
+                <span nz-icon nzType="thunderbolt" nzTheme="outline" class="header-icon text-amber"></span>
+                <h3>Accesos Rápidos</h3>
+              </div>
+            </div>
+
+            <div class="feed-content shortcut-box">
+              <div class="shortcut-item" routerLink="/user/my-claims">
+                <div class="shortcut-icon bg-yellow">
+                  <span nz-icon nzType="tool" nzTheme="outline"></span>
+                </div>
+                <div class="shortcut-desc">
+                  <span class="shortcut-title">Reportar Incidente</span>
+                  <span class="shortcut-sub">Notifica problemas en tu unidad</span>
+                </div>
+                <span nz-icon nzType="right" class="arrow-icon"></span>
+              </div>
+
+              <div class="shortcut-item" routerLink="/user/my-fees">
+                <div class="shortcut-icon bg-green">
+                  <span nz-icon nzType="dollar" nzTheme="outline"></span>
+                </div>
+                <div class="shortcut-desc">
+                  <span class="shortcut-title">Pagar Expensas</span>
+                  <span class="shortcut-sub">Consulta saldos y sube comprobantes</span>
+                </div>
+                <span nz-icon nzType="right" class="arrow-icon"></span>
+              </div>
+
+              <div class="shortcut-item" routerLink="/user/my-notifications">
+                <div class="shortcut-icon bg-indigo">
+                  <span nz-icon nzType="bell" nzTheme="outline"></span>
+                </div>
+                <div class="shortcut-desc">
+                  <span class="shortcut-title">Notificaciones</span>
+                  <span class="shortcut-sub">Revisa alertas del administrador</span>
+                </div>
+                <span nz-icon nzType="right" class="arrow-icon"></span>
+              </div>
+
+              <div class="shortcut-item" routerLink="/user/my-units">
+                <div class="shortcut-icon bg-blue">
+                  <span nz-icon nzType="home" nzTheme="outline"></span>
+                </div>
+                <div class="shortcut-desc">
+                  <span class="shortcut-title">Mis Unidades</span>
+                  <span class="shortcut-sub">Verifica tus comunidades asociadas</span>
+                </div>
+                <span nz-icon nzType="right" class="arrow-icon"></span>
+              </div>
+            </div>
+          </nz-card>
+        </div>
+      </div>
+
+    </div>
+
+  </ng-container>
+</div>
