@@ -134,6 +134,69 @@
     </tbody>
   </nz-table>
 
+  <!-- Vista Móvil: Tarjetas de Expensas responsivas -->
+  <div class="mobile-fees-list" *ngIf="!isLoading">
+    <div class="fee-card" *ngFor="let data of fees" 
+         [class.paid]="data.fee_status === 'Pagada'" 
+         [class.overdue]="data.fee_status === 'Vencida'" 
+         [class.pending]="data.fee_status === 'Pendiente' && !isFeePending(data.fee_uuid)" 
+         [class.verifying]="isFeePending(data.fee_uuid)">
+      <div class="fee-card-header">
+        <div class="unit-info">
+          <span class="unit-code">{{ data.unit?.uni_code || 'N/A' }}</span>
+          <span class="unit-cat">{{ data.unit?.uni_category || 'N/A' }}</span>
+        </div>
+        <span class="period-badge">{{ data.fee_period }}</span>
+      </div>
+      
+      <div class="fee-card-body">
+        <div class="fee-card-row">
+          <span class="label">Monto:</span>
+          <strong class="fee-amount">{{ data.fee_amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+        <div class="fee-card-row">
+          <span class="label">Vencimiento:</span>
+          <span class="value">{{ data.fee_duedate | date:'dd/MM/yyyy' }}</span>
+        </div>
+        <div class="fee-card-row">
+          <span class="label">Estado:</span>
+          <nz-badge [nzStatus]="getBadgeStatus(data.fee_status)" [nzText]="data.fee_status"></nz-badge>
+        </div>
+      </div>
+      
+      <div class="fee-card-actions">
+        <ng-container *ngIf="data.fee_status === 'Pagada'; else notPaidMobileBlock">
+          <div class="action-paid-group">
+            <span class="payment-success">
+              <span nz-icon nzType="check"></span> Confirmado
+            </span>
+            <button nz-button nzType="default" (click)="downloadReceipt(data)" class="btn-mobile-receipt">
+              <span nz-icon nzType="download"></span> Descargar Recibo
+            </button>
+          </div>
+        </ng-container>
+        <ng-template #notPaidMobileBlock>
+          <ng-container *ngIf="isFeePending(data.fee_uuid); else payButtonMobileBlock">
+            <span class="payment-verifying-mobile" title="La administración está validando tu transferencia bancaria.">
+              <span nz-icon nzType="clock-circle" nzTheme="fill"></span> En Verificación
+            </span>
+          </ng-container>
+          <ng-template #payButtonMobileBlock>
+            <button nz-button nzType="primary" (click)="payFee(data)" class="btn-mobile-pay">
+              <span nz-icon nzType="credit-card"></span> Pagar Expensa
+            </button>
+          </ng-template>
+        </ng-template>
+      </div>
+    </div>
+
+    <!-- Empty State en Mobile -->
+    <div class="empty-state-card" *ngIf="fees.length === 0">
+      <span nz-icon nzType="info-circle" style="font-size: 28px; color: rgba(0, 0, 0, 0.25);"></span>
+      <p>No se encontraron expensas o cuotas asociadas.</p>
+    </div>
+  </div>
+
   <!-- Modal: Reportar Transferencia Bancaria -->
   <nz-modal [(nzVisible)]="isTransferModalVisible" nzTitle="Reportar Pago por Transferencia" (nzOnCancel)="closeTransferModal()" [nzFooter]="transferModalFooter" nzWidth="520px">
     <div *nzModalContent class="transfer-modal-content">
