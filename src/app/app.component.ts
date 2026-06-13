@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
@@ -32,6 +32,7 @@ import { NotificationsService } from './core/services/notifications.service';
 export class AppComponent implements OnInit, OnDestroy {
   isCollapsed = false;
   isAuthRoute = false;
+  isMobile = false;
   public userRolesCompany: any[] = [];
   public activeCompany: any = null;
   public notifications: any[] = [];
@@ -49,10 +50,30 @@ export class AppComponent implements OnInit, OnDestroy {
       filter(event => event instanceof NavigationEnd)
     ).subscribe((event: any) => {
       this.isAuthRoute = event.urlAfterRedirects.startsWith('/auth') || event.url.startsWith('/auth');
+      this.checkMobile();
     });
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(): void {
+    this.checkMobile();
+  }
+
+  private checkMobile(): void {
+    if (typeof window !== 'undefined') {
+      const mobileStatus = window.innerWidth < 768;
+      if (this.isMobile !== mobileStatus) {
+        this.isMobile = mobileStatus;
+      }
+      if (this.isMobile) {
+        this.isCollapsed = true;
+      }
+    }
+  }
+
   ngOnInit(): void {
+    this.checkMobile();
+
     const identity = this._sessionService.getIdentity();
     const currentSession = this._sessionService.getCurrentSession() as any;
     this.activeCompany = currentSession?.company || null;

@@ -3,11 +3,14 @@
 </ng-container>
 
 <ng-template #mainLayout>
-  <nz-layout class="app-layout">
+  <nz-layout class="app-layout" [class.mobile-open]="!isCollapsed">
+    <!-- Backdrop for mobile menu -->
+    <div class="sidebar-backdrop" (click)="isCollapsed = true"></div>
+
     <nz-sider class="menu-sidebar"
       nzCollapsible
       nzWidth="256px"
-      nzBreakpoint="md"
+      [nzCollapsedWidth]="isMobile ? 0 : 80"
       [(nzCollapsed)]="isCollapsed"
       [nzTrigger]="null"
     >
@@ -152,7 +155,7 @@
             
             <button nz-button nzType="text" class="logout-btn" (click)="logout()">
               <nz-icon nzType="logout" />
-              <span>Cerrar Sesión</span>
+              <span class="logout-text">Cerrar Sesión</span>
             </button>
           </div>
         </div>
