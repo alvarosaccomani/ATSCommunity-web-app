@@ -8,6 +8,7 @@ import { TendersService } from '../../core/services/tenders.service';
 import { TenderOptionsService } from '../../core/services/tender-options.service';
 import { VotesService } from '../../core/services/votes.service';
 import { SessionService } from '../../core/services/session.service';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { ClaimInterface } from '../../core/interfaces/claim';
 import { ClaimCommentInterface } from '../../core/interfaces/claim-comment';
 import { NzTableModule } from 'ng-zorro-antd/table';
@@ -93,7 +94,8 @@ export class ClaimsComponent implements OnInit {
     private _tenderOptionsService: TenderOptionsService,
     private _votesService: VotesService,
     private sessionService: SessionService,
-    private message: NzMessageService
+    private message: NzMessageService,
+    private notificationsService: NotificationsService
   ) {
     this.initStatusForm();
     this.initTenderForms();
@@ -281,7 +283,10 @@ export class ClaimsComponent implements OnInit {
     this.claimsService.updateClaim(this.cmpUuid, this.selectedClaim.cla_uuid, payload).subscribe({
       next: () => {
         this.loadClaims();
-        if (this.selectedClaim) this.selectedClaim.cla_status = 'En Licitacion';
+        if (this.selectedClaim) {
+          this.selectedClaim.cla_status = 'En Licitacion';
+          this.sendStatusNotification(this.selectedClaim, 'En Licitacion');
+        }
       },
       error: (err) => console.error('Error actualizando estado del reclamo:', err)
     });
@@ -379,7 +384,10 @@ export class ClaimsComponent implements OnInit {
     this.claimsService.updateClaim(this.cmpUuid, this.selectedClaim.cla_uuid, payload).subscribe({
       next: () => {
         this.loadClaims();
-        if (this.selectedClaim) this.selectedClaim.cla_status = 'En Obra';
+        if (this.selectedClaim) {
+          this.selectedClaim.cla_status = 'En Obra';
+          this.sendStatusNotification(this.selectedClaim, 'En Obra');
+        }
       },
       error: (err) => console.error(err)
     });
@@ -431,6 +439,19 @@ export class ClaimsComponent implements OnInit {
         this.newCommentText = '';
         if (res.success) {
           this.comments.push(res.data);
+          
+          if (this.selectedClaim && this.selectedClaim.usr_uuid) {
+            const notification = {
+              usr_uuid: this.selectedClaim.usr_uuid,
+              cmp_uuid: this.cmpUuid,
+              ntf_title: 'Nuevo comentario en tu Reclamo',
+              ntf_message: `La administración ha dejado un comentario en tu reclamo: "${this.selectedClaim.cla_title}".`,
+              ntf_type: 'info' as const,
+              ntf_isread: false,
+              ntf_actionurl: '/user/my-claims'
+            };
+            this.notificationsService.saveNotification(notification).subscribe();
+          }
         } else {
           if (this.selectedClaim?.cla_uuid) {
             this.loadComments(this.selectedClaim.cla_uuid);
@@ -505,6 +526,7 @@ export class ClaimsComponent implements OnInit {
                 this.isSavingStatus = false;
                 this.isStatusVisible = false;
                 this.message.success('Estado del reclamo actualizado y evidencia guardada');
+                if (this.selectedClaim) this.sendStatusNotification(this.selectedClaim, updatedStatus);
                 this.loadClaims();
               },
               error: (err: any) => {
@@ -512,6 +534,7 @@ export class ClaimsComponent implements OnInit {
                 console.error(err);
                 this.message.warning('Estado actualizado, pero falló la subida de evidencia.');
                 this.isStatusVisible = false;
+                if (this.selectedClaim) this.sendStatusNotification(this.selectedClaim, updatedStatus);
                 this.loadClaims();
               }
             });
@@ -519,6 +542,7 @@ export class ClaimsComponent implements OnInit {
             this.isSavingStatus = false;
             this.isStatusVisible = false;
             this.message.success('Estado del reclamo actualizado con éxito');
+            if (this.selectedClaim) this.sendStatusNotification(this.selectedClaim, updatedStatus);
             this.loadClaims();
           }
         },
@@ -597,5 +621,20 @@ export class ClaimsComponent implements OnInit {
       const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
+  }
+
+  private sendStatusNotification(claim: ClaimInterface, status: string): void {
+    if (!claim.usr_uuid) return;
+    const friendlyStatus = this.formatStatus(status);
+    const notification = {
+      usr_uuid: claim.usr_uuid,
+      cmp_uuid: this.cmpUuid,
+      ntf_title: 'Reclamo Actualizado',
+      ntf_message: `Tu reclamo "${claim.cla_title}" ha cambiado de estado a "${friendlyStatus}".`,
+      ntf_type: (status === 'Rechazado' ? 'error' : status === 'FinalizadoAprobado' ? 'success' : 'info') as any,
+      ntf_isread: false,
+      ntf_actionurl: '/user/my-claims'
+    };
+    this.notificationsService.saveNotification(notification).subscribe();
   }
 }
