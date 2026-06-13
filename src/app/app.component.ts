@@ -1,14 +1,17 @@
-import { Component } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterOutlet, Router, NavigationEnd } from '@angular/router';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzLayoutModule } from 'ng-zorro-antd/layout';
 import { NzMenuModule } from 'ng-zorro-antd/menu';
 import { NzButtonModule } from 'ng-zorro-antd/button';
 import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
+import { NzBadgeModule } from 'ng-zorro-antd/badge';
 import { CommonModule } from '@angular/common';
-import { filter } from 'rxjs';
+import { filter, Subscription, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { SessionService } from './core/services/session.service';
 import { UserRolesCompanyService } from './core/services/user-roles-company.service';
+import { NotificationsService } from './core/services/notifications.service';
 
 @Component({
   selector: 'app-root',
@@ -20,21 +23,26 @@ import { UserRolesCompanyService } from './core/services/user-roles-company.serv
     NzLayoutModule, 
     NzMenuModule,
     NzButtonModule,
-    NzDropDownModule
+    NzDropDownModule,
+    NzBadgeModule
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnInit, OnDestroy {
   isCollapsed = false;
   isAuthRoute = false;
   public userRolesCompany: any[] = [];
   public activeCompany: any = null;
+  public notifications: any[] = [];
+  public unreadCount = 0;
+  private pollingSub?: Subscription;
 
   constructor(
     private _sessionService: SessionService,
     private _userRolesCompanyService: UserRolesCompanyService,
-    private _router: Router
+    private _router: Router,
+    private notificationsService: NotificationsService
   ) {
     this.isAuthRoute = window.location.pathname.startsWith('/auth');
     this._router.events.pipe(
@@ -50,6 +58,7 @@ export class AppComponent {
     this.activeCompany = currentSession?.company || null;
 
     if (identity) {
+      this.startNotificationPolling();
       this._userRolesCompanyService.getUserRolesCompanyByUser(identity.usr_uuid!)
         .subscribe((response: any) => {
           this.userRolesCompany = this.groupByCompany(response.data);
@@ -57,6 +66,7 @@ export class AppComponent {
           if (!this.activeCompany && this.userRolesCompany.length > 0) {
             this.activeCompany = this.userRolesCompany[0];
             this._sessionService.setCompany(JSON.stringify(this.activeCompany));
+            this.startNotificationPolling();
           }
         });
     }
@@ -85,6 +95,7 @@ export class AppComponent {
   public selectCompany(company: any): void {
     this.activeCompany = company;
     this._sessionService.setCompany(JSON.stringify(company));
+    this.startNotificationPolling();
 
     // Recargar componentes para que usen la nueva tienda de la sesión
     this._router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
@@ -92,8 +103,86 @@ export class AppComponent {
     });
   }
 
+  public startNotificationPolling(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
+    const identity = this._sessionService.getIdentity();
+    if (!identity || !this.activeCompany) return;
+
+    this.pollingSub = timer(0, 30000).pipe(
+      switchMap(() => this.notificationsService.getNotifications(identity.usr_uuid, this.activeCompany.cmp_uuid))
+    ).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.notifications = res.data;
+          this.unreadCount = this.notifications.filter(n => !n.ntf_isread).length;
+        }
+      },
+      error: (err) => console.error('Error polling notifications:', err)
+    });
+  }
+
+  public markAsRead(ntf: any): void {
+    if (ntf.ntf_isread) {
+      if (ntf.ntf_actionurl) {
+        this._router.navigate([ntf.ntf_actionurl]);
+      }
+      return;
+    }
+
+    const payload = {
+      cmp_uuid: ntf.cmp_uuid,
+      ntf_title: ntf.ntf_title,
+      ntf_message: ntf.ntf_message,
+      ntf_type: ntf.ntf_type,
+      ntf_isread: true
+    };
+
+    this.notificationsService.updateNotification(ntf.usr_uuid, ntf.ntf_uuid, payload).subscribe({
+      next: () => {
+        ntf.ntf_isread = true;
+        this.unreadCount = this.notifications.filter(n => !n.ntf_isread).length;
+        if (ntf.ntf_actionurl) {
+          this._router.navigate([ntf.ntf_actionurl]);
+        }
+      },
+      error: (err) => console.error('Error marking notification as read:', err)
+    });
+  }
+
+  public markAllAsRead(): void {
+    const unread = this.notifications.filter(n => !n.ntf_isread);
+    if (unread.length === 0) return;
+
+    unread.forEach(ntf => {
+      const payload = {
+        cmp_uuid: ntf.cmp_uuid,
+        ntf_title: ntf.ntf_title,
+        ntf_message: ntf.ntf_message,
+        ntf_type: ntf.ntf_type,
+        ntf_isread: true
+      };
+      this.notificationsService.updateNotification(ntf.usr_uuid, ntf.ntf_uuid, payload).subscribe({
+        next: () => {
+          ntf.ntf_isread = true;
+          this.unreadCount = this.notifications.filter(n => !n.ntf_isread).length;
+        }
+      });
+    });
+  }
+
   public logout(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
     this._sessionService.logout();
     this._router.navigate(['/auth/login']);
+  }
+
+  ngOnDestroy(): void {
+    if (this.pollingSub) {
+      this.pollingSub.unsubscribe();
+    }
   }
 }

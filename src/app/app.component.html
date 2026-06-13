@@ -61,6 +61,9 @@
             <li nz-menu-item nzMatchRouter>
               <a routerLink="/user/my-transactions">Mis Pagos</a>
             </li>
+            <li nz-menu-item nzMatchRouter>
+              <a routerLink="/user/my-notifications">Mis Notificaciones</a>
+            </li>
           </ul>
         </li>
         <li nz-submenu nzOpen nzTitle="Form" nzIcon="form">
@@ -99,6 +102,46 @@
                         <span nz-icon nzType="appstore" style="margin-right: 8px;"></span> Ver todas mis comunidades
                     </li>
                 </ul>
+            </nz-dropdown-menu>
+
+            <!-- Centro de Notificaciones -->
+            <nz-badge [nzCount]="unreadCount" [nzOffset]="[10, -5]" class="notification-badge-container">
+              <button nz-button nzType="text" class="notification-bell-btn" nz-dropdown [nzDropdownMenu]="notificationMenu" nzTrigger="click" [nzPlacement]="'bottomRight'">
+                <span nz-icon nzType="bell" style="font-size: 20px;"></span>
+              </button>
+            </nz-badge>
+
+            <nz-dropdown-menu #notificationMenu="nzDropdownMenu">
+              <div class="notification-dropdown-menu">
+                <div class="dropdown-header">
+                  <h3>Notificaciones</h3>
+                  <button class="mark-read-all" (click)="markAllAsRead()" *ngIf="unreadCount > 0">Marcar todas como leídas</button>
+                </div>
+                <ul class="notifications-list" *ngIf="notifications.length > 0">
+                  <li class="notification-item" *ngFor="let ntf of notifications | slice:0:5" [class.unread]="!ntf.ntf_isread" (click)="markAsRead(ntf)">
+                    <div class="item-icon-container" [class]="ntf.ntf_type">
+                      <span nz-icon [nzType]="ntf.ntf_type === 'success' ? 'check-circle' : ntf.ntf_type === 'error' ? 'close-circle' : ntf.ntf_type === 'warning' ? 'exclamation-circle' : 'info-circle'"></span>
+                    </div>
+                    <div class="item-content">
+                      <div class="item-title">{{ ntf.ntf_title }}</div>
+                      <div class="item-message">{{ ntf.ntf_message }}</div>
+                      <div class="item-meta">
+                        <span class="item-time">{{ ntf.ntf_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+                      </div>
+                    </div>
+                    <div class="item-dot-container" *ngIf="!ntf.ntf_isread">
+                      <div class="item-dot"></div>
+                    </div>
+                  </li>
+                </ul>
+                <div class="empty-state" *ngIf="notifications.length === 0">
+                  <span nz-icon nzType="notification" style="font-size: 32px; display: block; margin-bottom: 8px;"></span>
+                  <span>No tienes notificaciones</span>
+                </div>
+                <div class="dropdown-footer">
+                  <a routerLink="/user/my-notifications">Ver todas las notificaciones</a>
+                </div>
+              </div>
             </nz-dropdown-menu>
             
             <button nz-button nzType="text" class="logout-btn" (click)="logout()">
