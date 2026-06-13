@@ -1,0 +1,287 @@
+/* Premium SCSS Styles for ATSCommunity User Profile Settings */
+
+.profile-container {
+  padding: 24px;
+  max-width: 1400px;
+  margin: 0 auto;
+  min-height: 80vh;
+  background-color: #f8fafc;
+}
+
+/* Glassmorphic card base */
+.glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+  padding: 10px;
+  height: 100%;
+}
+
+/* 1. Profile Layout Grid */
+.profile-grid {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* 2. Header and Avatar Upload Styles */
+.profile-card-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 10px 10px 20px 10px;
+}
+
+.avatar-uploader-container {
+  flex-shrink: 0;
+}
+
+.avatar-circle {
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  border: 4px solid #ffffff;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+
+  &:hover {
+    transform: scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15);
+    
+    .avatar-hover-overlay {
+      opacity: 1;
+    }
+  }
+
+  .avatar-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .avatar-initials {
+    color: #ffffff;
+    font-size: 36px;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+  }
+
+  .avatar-hover-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.65);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    gap: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+
+    .camera-icon {
+      font-size: 18px;
+    }
+  }
+}
+
+.profile-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+  }
+
+  .user-role-tag {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #3b82f6;
+    background: #eff6ff;
+    padding: 3px 10px;
+    border-radius: 20px;
+    border: 1px solid rgba(59, 130, 246, 0.15);
+  }
+
+  .bio-preview {
+    margin: 6px 0 0 0;
+    font-size: 13px;
+    color: #64748b;
+    line-height: 1.5;
+    max-width: 450px;
+    word-break: break-word;
+
+    &.italic {
+      font-style: italic;
+      color: #94a3b8;
+    }
+  }
+}
+
+.header-divider {
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+  margin: 10px 0 24px 0;
+}
+
+/* 3. Forms spacing & inputs */
+.profile-form {
+  padding: 0 10px;
+
+  input, textarea {
+    border-radius: 8px;
+    border-color: #cbd5e1;
+    font-size: 13.5px;
+    background: #f8fafc;
+    padding: 8px 12px;
+
+    &:focus {
+      background: #ffffff;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+    }
+  }
+}
+
+.form-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
+}
+
+.submit-btn {
+  border-radius: 8px;
+  font-weight: 600;
+  height: 38px;
+  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.15);
+}
+
+/* 4. Security section styling (Right Side) */
+.security-section {
+  .card-header-simple {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    padding: 0 4px;
+
+    .section-icon {
+      font-size: 20px;
+      color: #ef4444;
+    }
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+  }
+
+  .section-desc {
+    font-size: 12.5px;
+    color: #64748b;
+    margin-bottom: 24px;
+    padding: 0 4px;
+    line-height: 1.4;
+  }
+
+  .security-form {
+    padding: 0 4px;
+
+    input {
+      border-radius: 8px;
+      border-color: #cbd5e1;
+      font-size: 13.5px;
+      background: #f8fafc;
+      padding: 8px 12px;
+
+      &:focus {
+        background: #ffffff;
+        border-color: #ef4444;
+        box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.1);
+      }
+    }
+
+    .w-100 {
+      width: 100%;
+    }
+
+    button {
+      margin-top: 12px;
+      box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.2);
+    }
+  }
+
+  .security-divider {
+    border: 0;
+    border-top: 1px dashed #e2e8f0;
+    margin: 16px 0;
+  }
+}
+
+/* Loading Skeleton Container */
+.loading-container {
+  max-width: 800px;
+  margin: 40px auto;
+}
+
+/* 5. Responsive Adjustment */
+@media (max-width: 992px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+@media (max-width: 576px) {
+  .profile-container {
+    padding: 16px;
+  }
+
+  .profile-card-header {
+    flex-direction: column;
+    text-align: center;
+    gap: 16px;
+  }
+
+  .profile-header-text .bio-preview {
+    max-width: 100%;
+  }
+
+  .form-footer {
+    justify-content: center;
+    
+    button {
+      width: 100%;
+    }
+  }
+}
