@@ -167,5 +167,25 @@
       </nz-content>
     </nz-layout>
   </nz-layout>
+
+  <!-- Navigation bar for mobile view -->
+  <div class="bottom-nav" *ngIf="isMobile && !isAuthRoute">
+    <a routerLink="/welcome" routerLinkActive="active" class="nav-item">
+      <span nz-icon nzType="home" nzTheme="outline"></span>
+      <span class="nav-label">Inicio</span>
+    </a>
+    <a routerLink="/user/my-fees" routerLinkActive="active" class="nav-item">
+      <span nz-icon nzType="wallet" nzTheme="outline"></span>
+      <span class="nav-label">Expensas</span>
+    </a>
+    <a routerLink="/user/my-chat" routerLinkActive="active" class="nav-item">
+      <span nz-icon nzType="message" nzTheme="outline"></span>
+      <span class="nav-label">Chat</span>
+    </a>
+    <a routerLink="/user/my-claims" routerLinkActive="active" class="nav-item">
+      <span nz-icon nzType="profile" nzTheme="outline"></span>
+      <span class="nav-label">Reclamos</span>
+    </a>
+  </div>
 </ng-template>
 
