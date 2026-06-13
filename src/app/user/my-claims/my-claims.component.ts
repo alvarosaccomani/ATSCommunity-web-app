@@ -5,6 +5,9 @@ import { ClaimsService } from '../../core/services/claims.service';
 import { ClaimImagesService } from '../../core/services/claim-images.service';
 import { ClaimCommentsService } from '../../core/services/claim-comments.service';
 import { UserUnitsService } from '../../core/services/user-units.service';
+import { TendersService } from '../../core/services/tenders.service';
+import { TenderOptionsService } from '../../core/services/tender-options.service';
+import { VotesService } from '../../core/services/votes.service';
 import { SessionService } from '../../core/services/session.service';
 import { ClaimInterface } from '../../core/interfaces/claim';
 import { ClaimCommentInterface } from '../../core/interfaces/claim-comment';
@@ -56,6 +59,14 @@ export class MyClaimsComponent implements OnInit {
   isSubmittingComment = false;
   claimImages: any[] = [];
 
+  // Licitación y Votaciones
+  activeTender: any = null;
+  tenderOptions: any[] = [];
+  votesList: any[] = [];
+  userVote: any = null;
+  isTenderLoading = false;
+  isVoting = false;
+
   // Imagen Adjunta en creación
   selectedImageBase64: string | null = null;
   imageFileName: string | null = null;
@@ -69,11 +80,15 @@ export class MyClaimsComponent implements OnInit {
     private _claimImagessService: ClaimImagesService,
     private _claimCommentsService: ClaimCommentsService,
     private userUnitsService: UserUnitsService,
+    private _tendersService: TendersService,
+    private _tenderOptionsService: TenderOptionsService,
+    private _votesService: VotesService,
     private sessionService: SessionService,
     private message: NzMessageService
   ) {
     this.initForm();
   }
+
 
   ngOnInit(): void {
     const session = this.sessionService.getCurrentSession();
@@ -232,6 +247,7 @@ export class MyClaimsComponent implements OnInit {
     if (claim.cla_uuid) {
       this.loadComments(claim.cla_uuid);
       this.loadImages(claim.cla_uuid);
+      this.loadTenderForClaim(claim.cla_uuid);
     }
   }
 
@@ -240,7 +256,102 @@ export class MyClaimsComponent implements OnInit {
     this.selectedClaim = null;
     this.comments = [];
     this.claimImages = [];
+    this.activeTender = null;
+    this.tenderOptions = [];
+    this.votesList = [];
+    this.userVote = null;
   }
+
+  public loadTenderForClaim(claUuid: string): void {
+    this.isTenderLoading = true;
+    this.activeTender = null;
+    this.tenderOptions = [];
+    this.votesList = [];
+    this.userVote = null;
+
+    this._tendersService.getTenders(this.cmpUuid, claUuid).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data && res.data.length > 0) {
+          this.activeTender = res.data[0];
+          const tenUuid = this.activeTender.ten_uuid;
+          this.loadTenderOptionsAndVotes(claUuid, tenUuid);
+        } else {
+          this.isTenderLoading = false;
+        }
+      },
+      error: (err: any) => {
+        this.isTenderLoading = false;
+        console.error('Error al cargar licitaciones:', err);
+      }
+    });
+  }
+
+  public loadTenderOptionsAndVotes(claUuid: string, tenUuid: string): void {
+    this._tenderOptionsService.getTenderOptions(this.cmpUuid, claUuid, tenUuid).subscribe({
+      next: (resOpt: any) => {
+        if (resOpt.success) {
+          this.tenderOptions = resOpt.data || [];
+        }
+        this._votesService.getVotes(this.cmpUuid, claUuid, tenUuid).subscribe({
+          next: (resVotes: any) => {
+            this.isTenderLoading = false;
+            if (resVotes.success) {
+              this.votesList = resVotes.data || [];
+              this.userVote = this.votesList.find(v => v.usr_uuid === this.usrUuid);
+              this.calculateVotes();
+            }
+          },
+          error: (err: any) => {
+            this.isTenderLoading = false;
+            console.error('Error al cargar votos:', err);
+          }
+        });
+      },
+      error: (err: any) => {
+        this.isTenderLoading = false;
+        console.error('Error al cargar opciones de licitación:', err);
+      }
+    });
+  }
+
+  public calculateVotes(): void {
+    this.tenderOptions.forEach(opt => {
+      const optVotes = this.votesList.filter(v => v.tenopt_uuid === opt.tenopt_uuid);
+      opt.votesCount = optVotes.length;
+      opt.percentage = this.votesList.length > 0 ? (optVotes.length / this.votesList.length) * 100 : 0;
+    });
+  }
+
+  public castVote(option: any): void {
+    if (!this.selectedClaim?.cla_uuid || !this.activeTender?.ten_uuid || !option.tenopt_uuid) return;
+    this.isVoting = true;
+
+    const payload = {
+      cmp_uuid: this.cmpUuid,
+      cla_uuid: this.selectedClaim.cla_uuid,
+      ten_uuid: this.activeTender.ten_uuid,
+      usr_uuid: this.usrUuid,
+      tenopt_uuid: option.tenopt_uuid
+    };
+
+    this._votesService.saveVote(payload).subscribe({
+      next: (res: any) => {
+        this.isVoting = false;
+        if (res.success) {
+          this.message.success('Tu voto ha sido registrado con éxito.');
+          if (this.selectedClaim?.cla_uuid && this.activeTender?.ten_uuid) {
+            this.loadTenderOptionsAndVotes(this.selectedClaim.cla_uuid, this.activeTender.ten_uuid);
+          }
+        }
+      },
+      error: (err: any) => {
+        this.isVoting = false;
+        console.error(err);
+        this.message.error(err.error?.error || 'Error al registrar tu voto.');
+      }
+    });
+  }
+
 
   public loadComments(claUuid: string): void {
     this._claimCommentsService.getClaimComments(this.cmpUuid, claUuid).subscribe({

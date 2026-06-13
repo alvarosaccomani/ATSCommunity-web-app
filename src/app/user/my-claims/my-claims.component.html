@@ -197,6 +197,74 @@
         </div>
       </div>
 
+      <!-- Sección de Convocatoria / Licitación de Presupuestos para Residentes -->
+      <div class="tender-section" *ngIf="selectedClaim?.cla_status === 'En Licitacion' || activeTender">
+        <hr class="divider" />
+        <div class="tender-header-row">
+          <h4><nz-icon nzType="solution" /> Concurso de Presupuestos</h4>
+          <span class="tender-status-badge" *ngIf="activeTender">
+            <nz-badge [nzStatus]="activeTender.ten_status === 'Activa' ? 'processing' : 'default'" 
+                      [nzText]="activeTender.ten_status === 'Activa' ? 'Votación Abierta' : 'Convocatoria Finalizada'"></nz-badge>
+          </span>
+        </div>
+
+        <div class="active-tender-box" *ngIf="activeTender && !isTenderLoading">
+          <div class="tender-meta-info">
+            <span class="deadline-text">
+              <nz-icon nzType="clock-circle" /> <strong>Límite para votar:</strong> {{ activeTender.ten_votingdeadline | date:'dd/MM/yyyy HH:mm' }}
+            </span>
+            <span class="voted-status-tag" *ngIf="userVote">
+              <nz-badge nzStatus="success" nzText="Voto registrado"></nz-badge>
+            </span>
+          </div>
+
+          <!-- Listado de Presupuestos Cargados -->
+          <div class="provider-options-list">
+            <h5 class="options-title">Propuestas Disponibles ({{ tenderOptions.length }})</h5>
+            <div class="option-item" *ngFor="let opt of tenderOptions" [ngClass]="{'voted-by-me': userVote && userVote.tenopt_uuid === opt.tenopt_uuid}">
+              
+              <!-- Badge indicando el voto del residente -->
+              <span class="my-vote-badge" *ngIf="userVote && userVote.tenopt_uuid === opt.tenopt_uuid">
+                <nz-icon nzType="check-circle" nzTheme="fill" /> Mi Elección
+              </span>
+
+              <div class="option-header">
+                <span class="provider-name">{{ opt.tenopt_providername }}</span>
+                <strong class="provider-amount">{{ opt.tenopt_amount | currency:'USD':'symbol':'1.2-2' }}</strong>
+              </div>
+              <p class="option-details" *ngIf="opt.tenopt_details">{{ opt.tenopt_details }}</p>
+              
+              <!-- Si el usuario ya votó o la licitación está cerrada, mostramos el progreso -->
+              <div class="votes-progress" *ngIf="userVote || activeTender.ten_status !== 'Activa'">
+                <div class="progress-bar-wrapper">
+                  <div class="progress-bar-fill" [style.width.%]="opt.percentage || 0"></div>
+                </div>
+                <div class="progress-stats">
+                  <span class="progress-pct">{{ opt.percentage | number:'1.0-1' }}%</span>
+                  <span class="progress-count">{{ opt.votesCount || 0 }} voto(s)</span>
+                </div>
+              </div>
+
+              <!-- Botón para votar (sólo si no ha votado y está activo) -->
+              <div class="option-vote-action" *ngIf="!userVote && activeTender.ten_status === 'Activa'">
+                <button nz-button nzType="primary" nzSize="default" class="w-100 vote-btn" [nzLoading]="isVoting" (click)="castVote(opt)">
+                  <nz-icon nzType="like" /> Votar esta Opción
+                </button>
+              </div>
+
+            </div>
+            <div class="no-options" *ngIf="tenderOptions.length === 0">
+              No hay presupuestos cargados para votar.
+            </div>
+          </div>
+        </div>
+
+        <div class="loading-state-inline" *ngIf="isTenderLoading">
+          <nz-icon nzType="loading" class="spin-icon" />
+          <p>Cargando propuestas y votos del concurso...</p>
+        </div>
+      </div>
+
       <hr class="divider" />
 
       <!-- Historial de Conversación / Comentarios -->
