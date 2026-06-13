@@ -6,6 +6,7 @@ import { ClaimsComponent } from './claims/claims.component';
 import { FeesComponent } from './fees/fees.component';
 import { TransactionsComponent } from './transactions/transactions.component';
 import { ChatComponent } from '../user/chat/chat.component';
+import { TendersComponent } from '../user/tenders/tenders.component';
 
 export const APPLICATION_ROUTES: Routes = [
     {
@@ -16,7 +17,8 @@ export const APPLICATION_ROUTES: Routes = [
             { path: 'claims', component: ClaimsComponent},
             { path: 'fees', component: FeesComponent},
             { path: 'transactions', component: TransactionsComponent},
-            { path: 'chat', component: ChatComponent}
+            { path: 'chat', component: ChatComponent},
+            { path: 'tenders', component: TendersComponent}
         ]
     }
 ];
