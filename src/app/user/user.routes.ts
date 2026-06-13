@@ -5,6 +5,7 @@ import { MyUnitsComponent } from './my-units/my-units.component';
 import { MyClaimsComponent } from './my-claims/my-claims.component';
 import { MyFeesComponent } from './my-fees/my-fees.component';
 import { MyTransactionsComponent } from './my-transactions/my-transactions.component';
+import { MyNotificationsComponent } from './my-notifications/my-notifications.component';
 
 export const USER_ROUTES: Routes = [
     {
@@ -14,7 +15,8 @@ export const USER_ROUTES: Routes = [
             { path: 'my-units', component: MyUnitsComponent},
             { path: 'my-claims', component: MyClaimsComponent},
             { path: 'my-fees', component: MyFeesComponent},
-            { path: 'my-transactions', component: MyTransactionsComponent}
+            { path: 'my-transactions', component: MyTransactionsComponent},
+            { path: 'my-notifications', component: MyNotificationsComponent}
         ]
     }
 ];
