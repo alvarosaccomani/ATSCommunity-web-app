@@ -117,6 +117,70 @@
         </tr>
       </tbody>
     </nz-table>
+
+    <!-- Vista Móvil: Listado de Reclamos en Tarjetas -->
+    <div class="mobile-claims-list" *ngIf="!isLoading">
+      <div class="claim-card" *ngFor="let data of claims"
+           [class.reclamo]="data.cla_type === 'Reclamo'"
+           [class.sugerencia]="data.cla_type === 'Sugerencia'"
+           [class.propuesta]="data.cla_type === 'Propuesta'">
+        <div class="card-header">
+          <div class="pill-group">
+            <span class="type-pill" [ngClass]="data.cla_type.toLowerCase()">
+              {{ data.cla_type }}
+            </span>
+            <span class="priority-badge-card" [ngClass]="data.cla_priority?.toLowerCase() || 'media'">
+              {{ data.cla_priority || 'Media' }}
+            </span>
+          </div>
+          <span class="status-badge">
+            <nz-badge [nzStatus]="getBadgeStatus(data.cla_status)" [nzText]="formatStatus(data.cla_status)"></nz-badge>
+          </span>
+        </div>
+        
+        <div class="card-body">
+          <h3 class="claim-title">{{ data.cla_title }}</h3>
+          
+          <div class="card-row" *ngIf="data.usr">
+            <span class="label">Residente:</span>
+            <span class="value">{{ data.usr.usr_name }} {{ data.usr.usr_surname }}</span>
+          </div>
+          <div class="card-row">
+            <span class="label">Unidad:</span>
+            <span class="value unit-code-badge">{{ data.unit?.uni_code || 'Gral. Edificio' }}</span>
+          </div>
+          <div class="card-row">
+            <span class="label">Reportado:</span>
+            <span class="value">{{ data.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+        </div>
+        
+        <div class="card-actions">
+          <button nz-button nzType="default" (click)="showDetailModal(data)" class="btn-action view-btn">
+            <nz-icon nzType="eye" /> Detalle
+          </button>
+          <button nz-button nzType="default" (click)="showStatusModal(data)" class="btn-action status-btn">
+            <nz-icon nzType="edit" /> Estado
+          </button>
+          <button
+            nz-button
+            nzType="primary"
+            nzDanger
+            nz-popconfirm
+            nzPopconfirmTitle="¿Estás seguro de eliminar este reclamo?"
+            (nzOnConfirm)="deleteClaim(data)"
+            class="btn-action delete-btn"
+          >
+            <nz-icon nzType="delete" /> Eliminar
+          </button>
+        </div>
+      </div>
+      
+      <div class="empty-state-card" *ngIf="claims.length === 0">
+        <nz-icon nzType="info-circle" style="font-size: 28px; color: rgba(0, 0, 0, 0.25);"></nz-icon>
+        <p>No se encontraron reclamos registrados.</p>
+      </div>
+    </div>
   </div>
 </div>
 
