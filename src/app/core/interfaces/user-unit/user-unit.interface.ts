@@ -1,3 +1,5 @@
+import { UnitInterface } from '../unit/unit.interface';
+
 export interface UserUnitInterface {
   cmp_uuid: string | null,
   usr_uuid: string | null,
@@ -15,5 +17,7 @@ export interface UserUnitInterface {
     usr_surname: string;
     usr_nick: string;
     usr_email: string;
-  }
+  };
+  unit?: UnitInterface;
 }
+
