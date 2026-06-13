@@ -7,8 +7,9 @@ export interface ClaimInterface {
   cla_description: string | null;
   cla_type: 'Reclamo' | 'Sugerencia' | 'Propuesta';
   cla_status: 'Abierto' | 'En Licitacion' | 'Aprobado' | 'En Obra' | 'FinalizadoAprobado' | 'Rechazado';
-  cla_createdat: Date | null;
-  cla_updatedat: Date | null;
+  cla_priority?: 'Baja' | 'Media' | 'Alta';
+  cla_createdat: Date | string | null;
+  cla_updatedat: Date | string | null;
   usr?: {
     usr_uuid: string;
     usr_name: string;
