@@ -1,1 +1,75 @@
-<p>my-notifications works!</p>
+<div class="notifications-container">
+  <div class="page-header">
+    <div class="header-title">
+      <h2>Centro de Notificaciones</h2>
+      <p>Revisa y administra los avisos y alertas de tu consorcio</p>
+    </div>
+    <div class="header-actions">
+      <button nz-button nzType="default" (click)="markAllAsRead()" [disabled]="unreadCount === 0">
+        <span nz-icon nzType="check-square"></span> Marcar todas como leídas
+      </button>
+    </div>
+  </div>
+
+  <nz-card class="notifications-card">
+    <div class="filter-bar">
+      <div class="filter-buttons">
+        <button nz-button [nzType]="filterStatus === 'all' ? 'primary' : 'default'" (click)="setFilter('all')">
+          Todas <span class="badge-count">{{ totalCount }}</span>
+        </button>
+        <button nz-button [nzType]="filterStatus === 'unread' ? 'primary' : 'default'" (click)="setFilter('unread')">
+          No leídas <span class="badge-count">{{ unreadCount }}</span>
+        </button>
+        <button nz-button [nzType]="filterStatus === 'read' ? 'primary' : 'default'" (click)="setFilter('read')">
+          Leídas <span class="badge-count">{{ readCount }}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="loading-container" *ngIf="isLoading">
+      <span nz-icon nzType="loading" style="font-size: 32px;"></span>
+      <p>Cargando notificaciones...</p>
+    </div>
+
+    <div class="list-container" *ngIf="!isLoading">
+      <ul class="notifications-history-list" *ngIf="filteredNotifications.length > 0">
+        <li class="notification-history-item" *ngFor="let ntf of filteredNotifications" [class.unread]="!ntf.ntf_isread" (click)="markAsRead(ntf)">
+          <div class="item-icon-wrapper" [class]="ntf.ntf_type">
+            <span nz-icon [nzType]="ntf.ntf_type === 'success' ? 'check-circle' : ntf.ntf_type === 'error' ? 'close-circle' : ntf.ntf_type === 'warning' ? 'exclamation-circle' : 'info-circle'"></span>
+          </div>
+
+          <div class="item-body">
+            <div class="item-header">
+              <span class="item-title">{{ ntf.ntf_title }}</span>
+              <span class="item-date">{{ ntf.ntf_createdat | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="item-text">{{ ntf.ntf_message }}</div>
+          </div>
+
+          <div class="item-actions">
+            <button nz-button nzType="text" nzShape="circle" 
+                    [title]="ntf.ntf_isread ? 'Marcar como no leída' : 'Marcar como leída'"
+                    (click)="toggleStatus(ntf, $event)">
+              <span nz-icon [nzType]="ntf.ntf_isread ? 'eye-invisible' : 'eye'"></span>
+            </button>
+            <button nz-button nzType="text" nzDanger nzShape="circle" title="Eliminar notificación"
+                    nz-popconfirm nzPopconfirmTitle="¿Deseas eliminar esta notificación?"
+                    (nzOnConfirm)="deleteNotification(ntf)" (click)="$event.stopPropagation()">
+              <span nz-icon nzType="delete"></span>
+            </button>
+          </div>
+        </li>
+      </ul>
+
+      <div class="empty-state-container" *ngIf="filteredNotifications.length === 0">
+        <div class="empty-icon">
+          <span nz-icon nzType="notification"></span>
+        </div>
+        <h3>No se encontraron notificaciones</h3>
+        <p *ngIf="filterStatus === 'all'">No tienes alertas registradas en este consorcio.</p>
+        <p *ngIf="filterStatus === 'unread'">No tienes notificaciones pendientes de lectura.</p>
+        <p *ngIf="filterStatus === 'read'">No tienes notificaciones leídas.</p>
+      </div>
+    </div>
+  </nz-card>
+</div>
