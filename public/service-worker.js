@@ -1,9 +1,10 @@
-const CACHE_NAME = 'ats-community-v1';
+const CACHE_NAME = 'ats-community-v1.0';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
   '/favicon.ico',
   '/manifest.json',
+  '/logo.png',
   '/icon-192.png',
   '/icon-512.png'
 ];
