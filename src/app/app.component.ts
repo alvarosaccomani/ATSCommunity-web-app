@@ -71,6 +71,15 @@ export class AppComponent implements OnInit, OnDestroy {
     }
   }
 
+  public get isAdmin(): boolean {
+    if (!this.activeCompany || !this.activeCompany.roles) return false;
+    return this.activeCompany.roles.some((r: any) =>
+      r.rol_name === 'Administrador' ||
+      r.rol_name === 'Admin' ||
+      r.rol_name === 'Administración'
+    );
+  }
+
   ngOnInit(): void {
     this.checkMobile();
 

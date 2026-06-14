@@ -28,7 +28,7 @@
             </li>
           </ul>
         </li>
-        <li nz-submenu nzOpen nzTitle="Consorcio" nzIcon="home">
+        <li nz-submenu nzOpen nzTitle="Consorcio" nzIcon="home" *ngIf="isAdmin">
           <ul>
             <li nz-menu-item nzMatchRouter>
               <a routerLink="/application/units">Unidades</a>
