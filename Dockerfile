@@ -8,7 +8,7 @@ RUN npm run build --prod
 
 # Etapa de producción
 FROM nginx:alpine
-COPY --from=builder /app/dist/atscommunity-web-app/browser /usr/share/nginx/html
+COPY --from=builder /app/dist/atscommunity-web-app/browser/. /usr/share/nginx/html/
 
 # 👇 Copia tu nginx.conf personalizado
 COPY nginx.conf /etc/nginx/conf.d/default.conf
