@@ -1,0 +1,32 @@
+{
+  "name": "ATS Community",
+  "short_name": "ATS Community",
+  "description": "Plataforma de gestión de consorcios y comunidad de vecinos",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0f2f5",
+  "theme_color": "#1890ff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["utilities", "productivity"],
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "256x256",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
