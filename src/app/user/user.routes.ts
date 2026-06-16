@@ -9,6 +9,7 @@ import { MyNotificationsComponent } from './my-notifications/my-notifications.co
 import { ChatComponent } from './chat/chat.component';
 import { MyProfileComponent } from './my-profile/my-profile.component';
 import { TendersComponent } from './tenders/tenders.component';
+import { MyReservationsComponent } from './my-reservations/my-reservations.component';
 
 export const USER_ROUTES: Routes = [
     {
@@ -22,7 +23,8 @@ export const USER_ROUTES: Routes = [
             { path: 'my-notifications', component: MyNotificationsComponent},
             { path: 'my-chat', component: ChatComponent},
             { path: 'my-profile', component: MyProfileComponent},
-            { path: 'my-tenders', component: TendersComponent}
+            { path: 'my-tenders', component: TendersComponent},
+            { path: 'my-reservations', component: MyReservationsComponent}
         ]
     }
 ];
