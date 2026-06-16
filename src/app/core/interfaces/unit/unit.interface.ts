@@ -9,6 +9,17 @@ export interface UnitInterface {
   uni_locationdetails: string | null;
   uni_metadata?: Record<string, any> | null; // Campo dinámico para la flexibilidad genérica
   uni_istransferable: boolean | null;
+  sit_uuid?: string | null;
+  spa_uuid?: string | null;
+  site?: { 
+    sit_uuid: string; 
+    sit_name: string
+  } | null;
+  space?: { 
+    spa_uuid: string; 
+    spa_name: string; 
+    spa_type: string 
+  } | null;
   uni_createdat: Date | null;
   uni_updatedat: Date | null
 }
