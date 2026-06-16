@@ -60,7 +60,7 @@ export class ClaimsComponent implements OnInit {
 
   // Detalle Modal
   isDetailVisible = false;
-  selectedClaim: ClaimInterface | null = null;
+  selectedClaim: any = null;
   comments: ClaimCommentInterface[] = [];
   newCommentText = '';
   isSubmittingComment = false;
@@ -507,6 +507,8 @@ export class ClaimsComponent implements OnInit {
         cla_type: this.selectedClaim.cla_type,
         usr_uuid: this.selectedClaim.usr_uuid,
         uni_uuid: this.selectedClaim.uni_uuid,
+        sit_uuid: this.selectedClaim.sit_uuid,
+        spa_uuid: this.selectedClaim.spa_uuid,
         cla_status: updatedStatus,
         cla_priority: this.selectedClaim.cla_priority || 'Media'
       };

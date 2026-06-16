@@ -59,7 +59,7 @@
           <th nzWidth="120px">Categoría</th>
           <th nzWidth="120px">Prioridad</th>
           <th nzWidth="200px">Residente</th>
-          <th nzWidth="120px">Unidad</th>
+          <th nzWidth="180px">Ubicación</th>
           <th nzWidth="150px">Reportado</th>
           <th nzWidth="150px">Estado</th>
           <th nzWidth="150px" nzAlign="center">Acciones</th>
@@ -85,7 +85,16 @@
             </div>
           </td>
           <td>
-            <span class="unit-code-badge">{{ data.unit?.uni_code || 'Gral. Edificio' }}</span>
+            <span class="unit-code-badge" *ngIf="data.uni_uuid">
+              <nz-icon nzType="home" /> {{ data.unit?.uni_code }}
+            </span>
+            <div *ngIf="!data.uni_uuid && data.site" class="common-area-cell" style="display: flex; flex-direction: column; gap: 4px;">
+              <span class="site-name-badge" style="font-size: 12px; font-weight: 600; color: #555;"><nz-icon nzType="environment" /> {{ data.site.sit_name }}</span>
+              <span class="space-name-badge" style="font-size: 11px; color: #777;"><nz-icon nzType="appstore" /> {{ data.space?.spa_name }}</span>
+            </div>
+            <span class="unit-code-badge" *ngIf="!data.uni_uuid && !data.site">
+              Gral. Edificio
+            </span>
           </td>
           <td>{{ data.cla_createdat | date:'dd/MM/yyyy HH:mm' }}</td>
           <td>
@@ -145,9 +154,19 @@
             <span class="label">Residente:</span>
             <span class="value">{{ data.usr.usr_name }} {{ data.usr.usr_surname }}</span>
           </div>
-          <div class="card-row">
+          <div class="card-row" *ngIf="data.uni_uuid">
             <span class="label">Unidad:</span>
-            <span class="value unit-code-badge">{{ data.unit?.uni_code || 'Gral. Edificio' }}</span>
+            <span class="value unit-code-badge"><nz-icon nzType="home" /> {{ data.unit?.uni_code }}</span>
+          </div>
+          <div class="card-row" *ngIf="!data.uni_uuid && data.site">
+            <span class="label">Ubicación:</span>
+            <span class="value text-muted" style="font-size: 12px;">
+              <nz-icon nzType="environment" /> {{ data.site.sit_name }} - {{ data.space?.spa_name }}
+            </span>
+          </div>
+          <div class="card-row" *ngIf="!data.uni_uuid && !data.site">
+            <span class="label">Ubicación:</span>
+            <span class="value unit-code-badge">Gral. Edificio</span>
           </div>
           <div class="card-row">
             <span class="label">Reportado:</span>
@@ -222,10 +241,19 @@
           <span class="grid-sub">{{ selectedClaim.usr?.usr_email }}</span>
         </div>
 
-        <div class="grid-item">
+        <div class="grid-item" *ngIf="selectedClaim.uni_uuid">
           <span class="grid-label"><nz-icon nzType="home" /> Unidad Afectada:</span>
-          <span class="grid-value">{{ selectedClaim.unit?.uni_code || 'Espacio Común / General' }}</span>
+          <span class="grid-value">{{ selectedClaim.unit?.uni_code }}</span>
           <span class="grid-sub">Categoría: {{ selectedClaim.unit?.uni_category || 'N/A' }}</span>
+        </div>
+        <div class="grid-item" *ngIf="!selectedClaim.uni_uuid && selectedClaim.site">
+          <span class="grid-label"><nz-icon nzType="environment" /> Sede / Dirección:</span>
+          <span class="grid-value">{{ selectedClaim.site?.sit_name }}</span>
+          <span class="grid-sub">Espacio: {{ selectedClaim.space?.spa_name }} ({{ selectedClaim.space?.spa_type }})</span>
+        </div>
+        <div class="grid-item" *ngIf="!selectedClaim.uni_uuid && !selectedClaim.site">
+          <span class="grid-label"><nz-icon nzType="home" /> Ubicación Afectada:</span>
+          <span class="grid-value">Espacio Común / General</span>
         </div>
 
         <div class="grid-item">
@@ -402,7 +430,12 @@
   nzMaskClosable="false"
 >
   <div *nzModalContent>
-    <p>Selecciona el nuevo estado para el incidente de la unidad <strong>{{ selectedClaim?.unit?.uni_code }}</strong>:</p>
+    <p>
+      Selecciona el nuevo estado para el incidente en 
+      <strong *ngIf="selectedClaim?.uni_uuid">{{ selectedClaim?.unit?.uni_code }}</strong>
+      <strong *ngIf="!selectedClaim?.uni_uuid && selectedClaim?.site">{{ selectedClaim?.site?.sit_name }} - {{ selectedClaim?.space?.spa_name }}</strong>
+      <strong *ngIf="!selectedClaim?.uni_uuid && !selectedClaim?.site">Espacio Común</strong>:
+    </p>
     <form nz-form [formGroup]="statusForm" nzLayout="vertical">
       <nz-form-item>
         <nz-form-label nzRequired>Estado de Resolución</nz-form-label>

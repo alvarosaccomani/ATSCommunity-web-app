@@ -21,4 +21,15 @@ export interface ClaimInterface {
     uni_code: string;
     uni_category: string;
   };
+  sit_uuid?: string | null;
+  spa_uuid?: string | null;
+  site?: {
+    sit_uuid: string;
+    sit_name: string;
+  } | null;
+  space?: {
+    spa_uuid: string;
+    spa_name: string;
+    spa_type: string;
+  } | null;
 }
