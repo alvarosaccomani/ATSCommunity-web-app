@@ -118,9 +118,9 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     const activeCompany = this.sessionService.getCompany();
     if (!activeCompany || !activeCompany.roles) return false;
     return activeCompany.roles.some((r: any) =>
-      r.rol_name === 'Administrador' ||
-      r.rol_name === 'Admin' ||
-      r.rol_name === 'Administración'
+      r.rol_name.toLowerCase() === 'administrador' ||
+      r.rol_name.toLowerCase() === 'admin' ||
+      r.rol_name.toLowerCase() === 'administración'
     );
   }
 
