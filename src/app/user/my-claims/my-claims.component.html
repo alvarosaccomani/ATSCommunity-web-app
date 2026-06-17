@@ -30,9 +30,13 @@
         <p class="claim-description">{{ item.cla_description }}</p>
 
         <div class="claim-metadata">
-          <div class="meta-row">
+          <div class="meta-row" *ngIf="item.uni_uuid">
             <span class="meta-label"><nz-icon nzType="home" /> Unidad:</span>
-            <span class="meta-value">{{ item.unit?.uni_code || 'Unidad Externa' }}</span>
+            <span class="meta-value">{{ item.unit?.uni_code || 'Mi Unidad' }}</span>
+          </div>
+          <div class="meta-row" *ngIf="!item.uni_uuid && item.site">
+            <span class="meta-label"><nz-icon nzType="environment" /> Sede / Área:</span>
+            <span class="meta-value">{{ item.site.sit_name }} - {{ item.space?.spa_name }}</span>
           </div>
           <div class="meta-row">
             <span class="meta-label"><nz-icon nzType="calendar" /> Reportado el:</span>
@@ -83,6 +87,19 @@
         </nz-form-item>
 
         <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Ubicación</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="location_type">
+              <nz-option nzValue="private" nzLabel="Mi Unidad Privada" *ngIf="userUnits.length > 0"></nz-option>
+              <nz-option nzValue="common" nzLabel="Área de la Asociación"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Fila condicional para Unidad Privada -->
+      <div class="modal-form-row" *ngIf="claimForm.get('location_type')?.value === 'private'">
+        <nz-form-item class="w-100">
           <nz-form-label nzRequired>Unidad Asociada</nz-form-label>
           <nz-form-control nzErrorTip="Debe seleccionar una unidad funcional">
             <nz-select formControlName="uni_uuid" nzPlaceHolder="Seleccionar unidad">
@@ -90,6 +107,35 @@
                 *ngFor="let rel of userUnits" 
                 [nzValue]="rel.uni_uuid" 
                 [nzLabel]="rel.unitDetail?.uni_code || 'Mi Unidad'"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Fila condicional para Sedes y Espacios Comunes -->
+      <div class="modal-form-row" *ngIf="claimForm.get('location_type')?.value === 'common'">
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Sede / Dirección</nz-form-label>
+          <nz-form-control nzErrorTip="Debe seleccionar una sede">
+            <nz-select formControlName="sit_uuid" nzPlaceHolder="Seleccionar sede" nzShowSearch>
+              <nz-option 
+                *ngFor="let s of sites" 
+                [nzValue]="s.sit_uuid" 
+                [nzLabel]="s.sit_name"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Espacio / Área Común</nz-form-label>
+          <nz-form-control nzErrorTip="Debe seleccionar un espacio">
+            <nz-select formControlName="spa_uuid" nzPlaceHolder="Seleccionar espacio" [nzDisabled]="!claimForm.get('sit_uuid')?.value" nzShowSearch>
+              <nz-option 
+                *ngFor="let sp of spaces" 
+                [nzValue]="sp.spa_uuid" 
+                [nzLabel]="sp.spa_name + ' (' + sp.spa_type + ')'"
               ></nz-option>
             </nz-select>
           </nz-form-control>
@@ -172,9 +218,17 @@
       </div>
 
       <div class="detail-grid-compact">
-        <div class="grid-item">
+        <div class="grid-item" *ngIf="selectedClaim.uni_uuid">
           <span class="grid-label"><nz-icon nzType="home" /> Unidad:</span>
-          <strong class="grid-value">{{ selectedClaim.unit?.uni_code || 'Espacio Común' }}</strong>
+          <strong class="grid-value">{{ selectedClaim.unit?.uni_code || 'Mi Unidad' }}</strong>
+        </div>
+        <div class="grid-item" *ngIf="!selectedClaim.uni_uuid && selectedClaim.site">
+          <span class="grid-label"><nz-icon nzType="environment" /> Sede:</span>
+          <strong class="grid-value">{{ selectedClaim.site.sit_name }}</strong>
+        </div>
+        <div class="grid-item" *ngIf="!selectedClaim.uni_uuid && selectedClaim.space">
+          <span class="grid-label"><nz-icon nzType="appstore" /> Espacio / Área:</span>
+          <strong class="grid-value">{{ selectedClaim.space.spa_name }} ({{ selectedClaim.space.spa_type }})</strong>
         </div>
         <div class="grid-item">
           <span class="grid-label"><nz-icon nzType="calendar" /> Reportado:</span>

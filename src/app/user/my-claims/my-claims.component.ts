@@ -9,6 +9,10 @@ import { TendersService } from '../../core/services/tenders.service';
 import { TenderOptionsService } from '../../core/services/tender-options.service';
 import { VotesService } from '../../core/services/votes.service';
 import { SessionService } from '../../core/services/session.service';
+import { SitesService } from '../../core/services/sites.service';
+import { SpacesService } from '../../core/services/spaces.service';
+import { SiteInterface } from '../../core/interfaces/site';
+import { SpaceInterface } from '../../core/interfaces/space';
 import { ClaimInterface } from '../../core/interfaces/claim';
 import { ClaimCommentInterface } from '../../core/interfaces/claim-comment';
 import { NzCardModule } from 'ng-zorro-antd/card';
@@ -53,7 +57,7 @@ export class MyClaimsComponent implements OnInit {
 
   // Detalle y Comentarios Modal
   isDetailVisible = false;
-  selectedClaim: ClaimInterface | null = null;
+  selectedClaim: any = null;
   comments: ClaimCommentInterface[] = [];
   newCommentText = '';
   isSubmittingComment = false;
@@ -84,6 +88,8 @@ export class MyClaimsComponent implements OnInit {
     private _tenderOptionsService: TenderOptionsService,
     private _votesService: VotesService,
     private sessionService: SessionService,
+    private sitesService: SitesService,
+    private spacesService: SpacesService,
     private message: NzMessageService
   ) {
     this.initForm();
@@ -101,13 +107,76 @@ export class MyClaimsComponent implements OnInit {
     } else {
       this.message.warning('No se pudo identificar tu sesión.');
     }
-  }  public initForm(): void {
+    }
+
+  sites: SiteInterface[] = [];
+  spaces: SpaceInterface[] = [];
+
+  public initForm(): void {
     this.claimForm = this.fb.group({
       cla_title: ['', [Validators.required, Validators.minLength(5), Validators.maxLength(100)]],
       cla_description: ['', [Validators.required, Validators.minLength(10)]],
       cla_type: ['Reclamo', [Validators.required]],
+      location_type: ['private', [Validators.required]],
       uni_uuid: ['', [Validators.required]],
+      sit_uuid: [''],
+      spa_uuid: [''],
       cla_priority: ['Media', [Validators.required]]
+    });
+
+    // Cambiar validadores dinámicamente según el tipo de ubicación
+    this.claimForm.get('location_type')?.valueChanges.subscribe(val => {
+      if (val === 'private') {
+        this.claimForm.get('uni_uuid')?.setValidators([Validators.required]);
+        this.claimForm.get('sit_uuid')?.clearValidators();
+        this.claimForm.get('spa_uuid')?.clearValidators();
+        this.claimForm.get('sit_uuid')?.setValue('');
+        this.claimForm.get('spa_uuid')?.setValue('');
+      } else {
+        this.claimForm.get('uni_uuid')?.clearValidators();
+        this.claimForm.get('sit_uuid')?.setValidators([Validators.required]);
+        this.claimForm.get('spa_uuid')?.setValidators([Validators.required]);
+        this.claimForm.get('uni_uuid')?.setValue('');
+      }
+      this.claimForm.get('uni_uuid')?.updateValueAndValidity();
+      this.claimForm.get('sit_uuid')?.updateValueAndValidity();
+      this.claimForm.get('spa_uuid')?.updateValueAndValidity();
+    });
+
+    // Cargar espacios de la sede seleccionada
+    this.claimForm.get('sit_uuid')?.valueChanges.subscribe(sitUuid => {
+      this.claimForm.get('spa_uuid')?.setValue('');
+      if (sitUuid) {
+        this.loadSpacesForSite(sitUuid);
+      } else {
+        this.spaces = [];
+      }
+    });
+  }
+
+  public loadSites(): void {
+    this.sitesService.getSites(this.cmpUuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.sites = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar sedes:', err);
+      }
+    });
+  }
+
+  public loadSpacesForSite(sitUuid: string): void {
+    this.spacesService.getSpacesBySite(this.cmpUuid, sitUuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.spaces = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar espacios:', err);
+      }
     });
   }
 
@@ -142,20 +211,35 @@ export class MyClaimsComponent implements OnInit {
   }
 
   public showCreateModal(): void {
-    if (this.userUnits.length === 0) {
-      this.message.warning('Debes tener al menos una unidad funcional asignada para reportar un incidente.');
-      return;
-    }
+    const defaultLoc = this.userUnits.length > 0 ? 'private' : 'common';
     this.claimForm.reset({
       cla_title: '',
       cla_description: '',
       cla_type: 'Reclamo',
+      location_type: defaultLoc,
       uni_uuid: this.userUnits[0]?.uni_uuid || '',
+      sit_uuid: '',
+      spa_uuid: '',
       cla_priority: 'Media'
     });
+    
+    if (defaultLoc === 'private') {
+      this.claimForm.get('uni_uuid')?.setValidators([Validators.required]);
+      this.claimForm.get('sit_uuid')?.clearValidators();
+      this.claimForm.get('spa_uuid')?.clearValidators();
+    } else {
+      this.claimForm.get('uni_uuid')?.clearValidators();
+      this.claimForm.get('sit_uuid')?.setValidators([Validators.required]);
+      this.claimForm.get('spa_uuid')?.setValidators([Validators.required]);
+    }
+    this.claimForm.get('uni_uuid')?.updateValueAndValidity();
+    this.claimForm.get('sit_uuid')?.updateValueAndValidity();
+    this.claimForm.get('spa_uuid')?.updateValueAndValidity();
+
     this.selectedImageBase64 = null;
     this.imageFileName = null;
     this.isModalVisible = true;
+    this.loadSites();
   }
 
   public handleCancel(): void {
@@ -183,13 +267,27 @@ export class MyClaimsComponent implements OnInit {
       this.isSaving = true;
       const generatedClaimUuid = this.generateUUID();
 
-      const payload = {
-        ...this.claimForm.value,
+      const formValues = this.claimForm.value;
+      const payload: any = {
+        cla_title: formValues.cla_title,
+        cla_description: formValues.cla_description,
+        cla_type: formValues.cla_type,
+        cla_priority: formValues.cla_priority,
         cmp_uuid: this.cmpUuid,
         usr_uuid: this.usrUuid,
         cla_uuid: generatedClaimUuid,
         cla_status: 'Abierto'
       };
+
+      if (formValues.location_type === 'private') {
+        payload.uni_uuid = formValues.uni_uuid;
+        payload.sit_uuid = null;
+        payload.spa_uuid = null;
+      } else {
+        payload.uni_uuid = null;
+        payload.sit_uuid = formValues.sit_uuid;
+        payload.spa_uuid = formValues.spa_uuid;
+      }
 
       this.claimsService.saveClaim(payload).subscribe({
         next: (res: any) => {
