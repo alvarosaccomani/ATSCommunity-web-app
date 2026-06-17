@@ -1,1 +1,354 @@
-<p>spaces works!</p>
+<div class="spaces-admin-container">
+  <div class="spaces-admin-header">
+    <div class="header-title">
+      <h2>Gestión de Espacios y Sedes</h2>
+      <p>Administra las sedes físicas, áreas comunes, amenities y aprueba las reservas de los residentes.</p>
+    </div>
+  </div>
+
+  <!-- Tabs segmentados de navegación de administración -->
+  <div class="segmented-navigation">
+    <button 
+      class="nav-tab-btn" 
+      [class.active]="activeSection === 'sites'" 
+      (click)="setSection('sites')"
+    >
+      <nz-icon nzType="environment" /> Sedes / Predios
+    </button>
+    <button 
+      class="nav-tab-btn" 
+      [class.active]="activeSection === 'spaces'" 
+      (click)="setSection('spaces')"
+    >
+      <nz-icon nzType="appstore" /> Espacios y Amenities
+    </button>
+    <button 
+      class="nav-tab-btn" 
+      [class.active]="activeSection === 'reservations'" 
+      (click)="setSection('reservations')"
+    >
+      <nz-icon nzType="calendar" /> Control de Reservas
+    </button>
+  </div>
+
+  <!-- ==================== SECCIÓN 1: SEDES ==================== -->
+  <div class="admin-section" *ngIf="activeSection === 'sites'">
+    <div class="section-actions-bar">
+      <h3>Sedes Registradas ({{ sites.length }})</h3>
+      <button nz-button nzType="primary" (click)="showCreateSiteModal()">
+        <nz-icon nzType="plus" /> Agregar Sede
+      </button>
+    </div>
+
+    <div class="table-card">
+      <nz-table #sitesTable [nzData]="sites" [nzBordered]="true" [nzLoading]="isLoading" [nzPageSize]="6">
+        <thead>
+          <tr>
+            <th>Nombre de Sede</th>
+            <th>Dirección</th>
+            <th nzWidth="120px">Estado</th>
+            <th nzWidth="150px" nzAlign="center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let s of sitesTable.data">
+            <td class="bold-cell">{{ s.sit_name }}</td>
+            <td>{{ s.sit_address }}</td>
+            <td>
+              <nz-badge [nzStatus]="s.sit_status === 'Activo' ? 'success' : 'default'" [nzText]="s.sit_status === 'Activo' ? 'Activa' : 'Inactiva'"></nz-badge>
+            </td>
+            <td nzAlign="center">
+              <div class="row-actions">
+                <button nz-button nzType="text" nzShape="circle" (click)="showEditSiteModal(s)" title="Editar">
+                  <nz-icon nzType="edit" />
+                </button>
+                <button 
+                  nz-button 
+                  nzType="text" 
+                  nzDanger 
+                  nzShape="circle"
+                  nz-popconfirm
+                  nzPopconfirmTitle="¿Eliminar esta sede? Se borrarán sus espacios asociados."
+                  (nzOnConfirm)="deleteSite(s.sit_uuid)"
+                  title="Eliminar"
+                >
+                  <nz-icon nzType="delete" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </div>
+
+  <!-- ==================== SECCIÓN 2: ESPACIOS ==================== -->
+  <div class="admin-section" *ngIf="activeSection === 'spaces'">
+    <div class="section-actions-bar">
+      <h3>Espacios Comunes y Amenities ({{ spaces.length }})</h3>
+      <button nz-button nzType="primary" (click)="showCreateSpaceModal()" [disabled]="sites.length === 0">
+        <nz-icon nzType="plus" /> Agregar Espacio
+      </button>
+    </div>
+
+    <div class="table-card">
+      <nz-table #spacesTable [nzData]="spaces" [nzBordered]="true" [nzLoading]="isLoading" [nzPageSize]="6">
+        <thead>
+          <tr>
+            <th nzWidth="120px">Código</th>
+            <th>Nombre del Espacio</th>
+            <th>Sede</th>
+            <th nzWidth="120px">Tipo</th>
+            <th nzWidth="120px">Capacidad</th>
+            <th nzWidth="120px">Costo</th>
+            <th nzWidth="120px">Estado</th>
+            <th nzWidth="150px" nzAlign="center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let sp of spacesTable.data">
+            <td><code>{{ sp.spa_code }}</code></td>
+            <td class="bold-cell">{{ sp.spa_name }}</td>
+            <td>{{ sp.site?.sit_name || 'N/A' }}</td>
+            <td>
+              <span class="type-badge" [class.reservable]="sp.spa_type === 'Reservable'">
+                {{ sp.spa_type }}
+              </span>
+            </td>
+            <td>{{ sp.spa_capacity ? sp.spa_capacity + ' pers.' : 'N/L' }}</td>
+            <td>{{ sp.spa_cost ? (sp.spa_cost | currency:'USD':'symbol':'1.2-2') : 'Gratis' }}</td>
+            <td>
+              <nz-badge 
+                [nzStatus]="sp.spa_status === 'Active' ? 'success' : sp.spa_status === 'Maintenance' ? 'warning' : 'error'" 
+                [nzText]="sp.spa_status === 'Active' ? 'Activo' : sp.spa_status === 'Maintenance' ? 'Mantenimiento' : 'Inactivo'"
+              ></nz-badge>
+            </td>
+            <td nzAlign="center">
+              <div class="row-actions">
+                <button nz-button nzType="text" nzShape="circle" (click)="showEditSpaceModal(sp)" title="Editar">
+                  <nz-icon nzType="edit" />
+                </button>
+                <button 
+                  nz-button 
+                  nzType="text" 
+                  nzDanger 
+                  nzShape="circle"
+                  nz-popconfirm
+                  nzPopconfirmTitle="¿Eliminar este espacio?"
+                  (nzOnConfirm)="deleteSpace(sp.spa_uuid)"
+                  title="Eliminar"
+                >
+                  <nz-icon nzType="delete" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </div>
+
+  <!-- ==================== SECCIÓN 3: RESERVAS ==================== -->
+  <div class="admin-section" *ngIf="activeSection === 'reservations'">
+    <div class="section-actions-bar">
+      <h3>Solicitudes de Reservas ({{ reservations.length }})</h3>
+    </div>
+
+    <div class="table-card">
+      <nz-table #resTable [nzData]="reservations" [nzBordered]="true" [nzLoading]="isLoading" [nzPageSize]="6">
+        <thead>
+          <tr>
+            <th>Residente</th>
+            <th>Sede</th>
+            <th>Espacio</th>
+            <th nzWidth="120px">Fecha</th>
+            <th nzWidth="150px">Turno</th>
+            <th nzWidth="120px">Estado</th>
+            <th nzWidth="200px" nzAlign="center">Acciones / Moderación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let r of resTable.data">
+            <td>
+              <div class="user-cell">
+                <strong class="name">{{ r.usr?.usr_name }} {{ r.usr?.usr_surname }}</strong>
+                <span class="uuid">{{ r.usr?.usr_email }}</span>
+              </div>
+            </td>
+            <td>{{ r.space?.site?.sit_name || 'N/A' }}</td>
+            <td class="bold-cell">{{ r.space?.spa_name }}</td>
+            <td>{{ r.res_date | date:'dd/MM/yyyy' }}</td>
+            <td>{{ r.res_slot }}</td>
+            <td>
+              <nz-badge [nzStatus]="getBadgeStatus(r.res_status)" [nzText]="r.res_status"></nz-badge>
+            </td>
+            <td nzAlign="center">
+              <div class="moderation-actions">
+                <!-- Aprobar (solo si está pendiente) -->
+                <button 
+                  nz-button 
+                  nzType="primary" 
+                  nzSize="small" 
+                  *ngIf="r.res_status === 'Pendiente'"
+                  (click)="updateReservationStatus(r.res_uuid, 'Aprobada')"
+                  class="approve-btn"
+                >
+                  <nz-icon nzType="check" /> Aprobar
+                </button>
+
+                <!-- Rechazar / Cancelar (si está pendiente o aprobada) -->
+                <button 
+                  nz-button 
+                  nzDanger 
+                  nzSize="small" 
+                  *ngIf="r.res_status !== 'Cancelada'"
+                  nz-popconfirm
+                  nzPopconfirmTitle="¿Rechazar o cancelar esta reserva?"
+                  (nzOnConfirm)="updateReservationStatus(r.res_uuid, 'Cancelada')"
+                  class="cancel-btn"
+                >
+                  <nz-icon nzType="close" /> Cancelar
+                </button>
+
+                <!-- Eliminar físicamente (si ya está cancelada o es antigua) -->
+                <button 
+                  nz-button 
+                  nzType="text" 
+                  nzDanger
+                  *ngIf="r.res_status === 'Cancelada'"
+                  nz-popconfirm
+                  nzPopconfirmTitle="¿Eliminar definitivamente el registro de reserva?"
+                  (nzOnConfirm)="deleteReservation(r.res_uuid)"
+                  title="Eliminar registro"
+                >
+                  <nz-icon nzType="delete" />
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </nz-table>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== MODAL DE SEDE ==================== -->
+<nz-modal
+  [(nzVisible)]="isSiteModalVisible"
+  [nzTitle]="editingSiteUuid ? 'Modificar Sede / Dirección' : 'Nueva Sede'"
+  (nzOnCancel)="isSiteModalVisible = false"
+  (nzOnOk)="saveSite()"
+  [nzOkLoading]="isSaving"
+  [nzWidth]="450"
+  nzMaskClosable="false"
+>
+  <div *nzModalContent>
+    <form nz-form [formGroup]="siteForm" nzLayout="vertical">
+      <nz-form-item>
+        <nz-form-label nzRequired>Nombre de Sede</nz-form-label>
+        <nz-form-control nzErrorTip="Nombre obligatorio (mínimo 3 caracteres)">
+          <input nz-input formControlName="sit_name" placeholder="Ej: Galpón Principal, Anexo Sur, Sede Norte" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Dirección / Ubicación Física</nz-form-label>
+        <nz-form-control nzErrorTip="Dirección obligatoria">
+          <input nz-input formControlName="sit_address" placeholder="Ej: Av. del Libertador 4200, Belgrano" />
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Estado</nz-form-label>
+        <nz-form-control>
+          <nz-select formControlName="sit_status">
+            <nz-option nzValue="Activo" nzLabel="Activa"></nz-option>
+            <nz-option nzValue="Inactivo" nzLabel="Inactiva"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+    </form>
+  </div>
+</nz-modal>
+
+<!-- ==================== MODAL DE ESPACIO ==================== -->
+<nz-modal
+  [(nzVisible)]="isSpaceModalVisible"
+  [nzTitle]="editingSpaceUuid ? 'Modificar Espacio' : 'Nuevo Espacio'"
+  (nzOnCancel)="isSpaceModalVisible = false"
+  (nzOnOk)="saveSpace()"
+  [nzOkLoading]="isSaving"
+  [nzWidth]="500"
+  nzMaskClosable="false"
+>
+  <div *nzModalContent>
+    <form nz-form [formGroup]="spaceForm" nzLayout="vertical">
+      
+      <nz-form-item>
+        <nz-form-label nzRequired>Sede Asociada</nz-form-label>
+        <nz-form-control nzErrorTip="Selecciona una sede">
+          <nz-select formControlName="sit_uuid" nzPlaceHolder="Seleccionar sede">
+            <nz-option *ngFor="let s of sites" [nzValue]="s.sit_uuid" [nzLabel]="s.sit_name"></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <div class="form-row-half">
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Código del Espacio</nz-form-label>
+          <nz-form-control nzErrorTip="Código obligatorio (mínimo 2 caracteres)">
+            <input nz-input formControlName="spa_code" placeholder="Ej: SUM-01, COCH-A" />
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Nombre del Espacio / Habitación</nz-form-label>
+          <nz-form-control nzErrorTip="Nombre obligatorio (mínimo 3 caracteres)">
+            <input nz-input formControlName="spa_name" placeholder="Ej: SUM, Quincho, Cocina" />
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <div class="form-row-half">
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Tipo de Espacio</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="spa_type">
+              <nz-option nzValue="Reservable" nzLabel="Reservable (SUM, Cancha, etc)"></nz-option>
+              <nz-option nzValue="General" nzLabel="General / No reservable (Pasillo, Baño)"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Estado</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="spa_status">
+              <nz-option nzValue="Active" nzLabel="Activo"></nz-option>
+              <nz-option nzValue="Maintenance" nzLabel="En Mantenimiento"></nz-option>
+              <nz-option nzValue="Inactive" nzLabel="Inactivo"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+      <!-- Atributos condicionales si es reservable -->
+      <div class="form-row-half" *ngIf="spaceForm.get('spa_type')?.value === 'Reservable'">
+        <nz-form-item class="form-half">
+          <nz-form-label>Capacidad Máxima (Personas)</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="spa_capacity" [nzMin]="1" [nzStep]="1" class="w-100"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label>Costo de Reserva</nz-form-label>
+          <nz-form-control>
+            <nz-input-number formControlName="spa_cost" [nzMin]="0" [nzStep]="50" class="w-100"></nz-input-number>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+    </form>
+  </div>
+</nz-modal>
