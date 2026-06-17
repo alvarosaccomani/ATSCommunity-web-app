@@ -7,6 +7,10 @@ import { UnitsService } from '../../core/services/units.service';
 import { SessionService } from '../../core/services/session.service';
 import { UserUnitsService } from '../../core/services/user-units.service';
 import { UsersService } from '../../core/services/users.service';
+import { SitesService } from '../../core/services/sites.service';
+import { SpacesService } from '../../core/services/spaces.service';
+import { SiteInterface } from '../../core/interfaces/site';
+import { SpaceInterface } from '../../core/interfaces/space';
 import { UnitInterface } from '../../core/interfaces/unit';
 import { NzTableModule } from 'ng-zorro-antd/table';
 import { NzButtonModule } from 'ng-zorro-antd/button';
@@ -74,17 +78,22 @@ export class UnitsComponent implements OnInit {
     private message: NzMessageService,
     private userUnitsService: UserUnitsService,
     private usersService: UsersService,
+    private sitesService: SitesService,
+    private spacesService: SpacesService,
     private http: HttpClient
   ) {
     this.initForm();
     this.initAssignmentForm();
   }
 
+  sites: SiteInterface[] = [];
+  spaces: SpaceInterface[] = [];
+
   ngOnInit(): void {
-    // Intentar obtener cmp_uuid de la sesión del usuario o local storage
     const session = this.sessionService.getCurrentSession();
     this.cmpUuid = session?.identity?.cmp_uuid || this.sessionService.getCompany()?.cmp_uuid;
     this.loadUnits();
+    this.loadSites();
   }
 
   public initForm(): void {
@@ -95,7 +104,45 @@ export class UnitsComponent implements OnInit {
       uni_financialcoefficient: [1.0000, [Validators.required, Validators.min(0)]],
       uni_baseamountcustom: [0.00, [Validators.required, Validators.min(0)]],
       uni_locationdetails: [''],
+      sit_uuid: [''],
+      spa_uuid: [''],
       uni_istransferable: [true]
+    });
+
+    // Escuchar cambios de sede para cargar espacios
+    this.unitForm.get('sit_uuid')?.valueChanges.subscribe(sitUuid => {
+      this.unitForm.get('spa_uuid')?.setValue('');
+      if (sitUuid) {
+        this.loadSpacesForSite(sitUuid);
+      } else {
+        this.spaces = [];
+      }
+    });
+  }
+
+  public loadSites(): void {
+    this.sitesService.getSites(this.cmpUuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.sites = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar sedes:', err);
+      }
+    });
+  }
+
+  public loadSpacesForSite(sitUuid: string): void {
+    this.spacesService.getSpacesBySite(this.cmpUuid, sitUuid).subscribe({
+      next: (res: any) => {
+        if (res.success) {
+          this.spaces = res.data || [];
+        }
+      },
+      error: (err: any) => {
+        console.error('Error al cargar espacios:', err);
+      }
     });
   }
 
@@ -137,6 +184,8 @@ export class UnitsComponent implements OnInit {
       uni_financialcoefficient: 1.0000,
       uni_baseamountcustom: 0.00,
       uni_locationdetails: '',
+      sit_uuid: '',
+      spa_uuid: '',
       uni_istransferable: true
     });
     this.isModalVisible = true;
@@ -146,6 +195,13 @@ export class UnitsComponent implements OnInit {
     this.isEditing = true;
     this.modalTitle = 'Editar Unidad';
     this.currentUnitUuid = unit.uni_uuid;
+
+    if (unit.sit_uuid) {
+      this.loadSpacesForSite(unit.sit_uuid);
+    } else {
+      this.spaces = [];
+    }
+
     this.unitForm.patchValue({
       uni_code: unit.uni_code,
       uni_category: unit.uni_category,
@@ -153,6 +209,8 @@ export class UnitsComponent implements OnInit {
       uni_financialcoefficient: unit.uni_financialcoefficient,
       uni_baseamountcustom: unit.uni_baseamountcustom,
       uni_locationdetails: unit.uni_locationdetails,
+      sit_uuid: unit.sit_uuid || '',
+      spa_uuid: unit.spa_uuid || '',
       uni_istransferable: unit.uni_istransferable
     });
     this.isModalVisible = true;

@@ -26,6 +26,7 @@
           <th nzWidth="150px">Coef. Expensas</th>
           <th nzWidth="180px">Monto Base</th>
           <th>Detalles de Ubicación</th>
+          <th>Sede / Espacio</th>
           <th nzWidth="150px" nzAlign="center">Acciones</th>
         </tr>
       </thead>
@@ -39,6 +40,13 @@
           <td>{{ data.uni_financialcoefficient | number:'1.4-4' }}</td>
           <td>{{ data.uni_baseamountcustom | currency:'USD':'symbol':'1.2-2' }}</td>
           <td>{{ data.uni_locationdetails || '-' }}</td>
+          <td>
+            <div *ngIf="data.site" style="display: flex; flex-direction: column; gap: 2px;">
+              <span style="font-weight: 600; font-size: 13px;"><nz-icon nzType="environment" /> {{ data.site.sit_name }}</span>
+              <span style="font-size: 12px; color: #666;" *ngIf="data.space"><nz-icon nzType="appstore" /> {{ data.space.spa_name }}</span>
+            </div>
+            <span *ngIf="!data.site">-</span>
+          </td>
           <td nzAlign="center">
             <div class="action-buttons">
               <button nz-button nzType="text" nzShape="circle" (click)="showAssignmentsModal(data)" class="assign-action" title="Habitantes">
@@ -91,6 +99,10 @@
           <div class="card-row" *ngIf="data.uni_locationdetails">
             <span class="label">Ubicación:</span>
             <span class="value">{{ data.uni_locationdetails }}</span>
+          </div>
+          <div class="card-row" *ngIf="data.site">
+            <span class="label">Sede / Espacio:</span>
+            <span class="value">{{ data.site.sit_name }} <span *ngIf="data.space">- {{ data.space.spa_name }}</span></span>
           </div>
         </div>
         <div class="card-actions">
@@ -202,8 +214,29 @@
         </nz-form-item>
       </div>
 
+      <!-- Ubicación Física Opcional (Sede y Espacio) -->
+      <div class="modal-form-row">
+        <nz-form-item class="form-half">
+          <nz-form-label>Sede Física (Opcional)</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="sit_uuid" nzPlaceHolder="Seleccionar sede" nzShowSearch nzAllowClear>
+              <nz-option *ngFor="let s of sites" [nzValue]="s.sit_uuid" [nzLabel]="s.sit_name"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label>Espacio de Guardado / Área (Opcional)</nz-form-label>
+          <nz-form-control>
+            <nz-select formControlName="spa_uuid" nzPlaceHolder="Seleccionar espacio" [nzDisabled]="!unitForm.get('sit_uuid')?.value" nzShowSearch nzAllowClear>
+              <nz-option *ngFor="let sp of spaces" [nzValue]="sp.spa_uuid" [nzLabel]="sp.spa_name + ' (' + sp.spa_type + ')'"></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
       <nz-form-item>
-        <nz-form-label>Detalles de Ubicación</nz-form-label>
+        <nz-form-label>Detalles de Ubicación / Notas</nz-form-label>
         <nz-form-control>
           <input nz-input formControlName="uni_locationdetails" placeholder="Ej: Piso 3, Ala Norte" />
         </nz-form-control>
