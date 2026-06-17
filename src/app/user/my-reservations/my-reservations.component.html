@@ -1,1 +1,178 @@
-<p>my-reservations works!</p>
+<div class="reservations-container">
+  <div class="reservations-header">
+    <div class="header-title">
+      <h2>Mis Reservas</h2>
+      <p>Reserva amenities y espacios comunes para tus actividades o reuniones.</p>
+    </div>
+    <button nz-button nzType="primary" (click)="showCreateModal()" class="add-btn">
+      <nz-icon nzType="plus" /> Nueva Reserva
+    </button>
+  </div>
+
+  <!-- Tabs segmentados -->
+  <div class="segmented-tabs">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'upcoming'" 
+      (click)="setTab('upcoming')"
+    >
+      Próximas Reservas
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'past'" 
+      (click)="setTab('past')"
+    >
+      Historial / Canceladas
+    </button>
+  </div>
+
+  <div class="cards-grid" *ngIf="!isLoading && filteredReservations.length > 0; else noReservations">
+    <div class="reservation-card" *ngFor="let item of filteredReservations">
+      <div class="card-header-bar">
+        <div class="space-title-group">
+          <h3>{{ item.space?.spa_name }}</h3>
+          <span class="site-sub" *ngIf="item.space?.site">
+            <nz-icon nzType="environment" /> {{ item.space?.site?.sit_name }}
+          </span>
+        </div>
+        <nz-badge [nzStatus]="getBadgeStatus(item.res_status)" [nzText]="item.res_status"></nz-badge>
+      </div>
+
+      <div class="card-body">
+        <div class="info-row">
+          <span class="info-label"><nz-icon nzType="calendar" /> Fecha:</span>
+          <strong class="info-value">{{ item.res_date | date:'dd/MM/yyyy' }}</strong>
+        </div>
+        <div class="info-row">
+          <span class="info-label"><nz-icon nzType="clock-circle" /> Turno / Horario:</span>
+          <strong class="info-value">{{ item.res_slot }}</strong>
+        </div>
+        <div class="info-row" *ngIf="item.space?.spa_capacity">
+          <span class="info-label"><nz-icon nzType="team" /> Capacidad Máx:</span>
+          <span class="info-value">{{ item.space?.spa_capacity }} personas</span>
+        </div>
+        <div class="info-row" *ngIf="item.space?.spa_cost">
+          <span class="info-label"><nz-icon nzType="dollar" /> Costo de Reserva:</span>
+          <strong class="info-value text-primary">{{ item.space?.spa_cost | currency:'USD':'symbol':'1.2-2' }}</strong>
+        </div>
+      </div>
+
+      <div class="card-actions" *ngIf="item.res_status !== 'Cancelada' && activeTab === 'upcoming'">
+        <button 
+          nz-button 
+          nzType="primary" 
+          nzDanger 
+          nz-popconfirm
+          nzPopconfirmTitle="¿Estás seguro de que quieres cancelar esta reserva?"
+          (nzOnConfirm)="cancelReservation(item.res_uuid)"
+          class="cancel-btn w-100"
+        >
+          <nz-icon nzType="close-circle" /> Cancelar Reserva
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noReservations>
+    <div class="empty-state" *ngIf="!isLoading">
+      <nz-icon nzType="calendar" class="empty-icon" />
+      <h3>Sin Reservas</h3>
+      <p *ngIf="activeTab === 'upcoming'">No tienes ninguna reserva programada para los próximos días. ¡Reserva un espacio para empezar!</p>
+      <p *ngIf="activeTab === 'past'">No hay reservas pasadas o canceladas en tu historial.</p>
+    </div>
+  </ng-template>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <nz-icon nzType="loading" class="spin-icon" />
+    <p>Cargando tus reservas...</p>
+  </div>
+</div>
+
+<!-- Modal para Nueva Reserva -->
+<nz-modal
+  [(nzVisible)]="isModalVisible"
+  nzTitle="Solicitar Reserva de Espacio"
+  (nzOnCancel)="handleCancel()"
+  (nzOnOk)="saveReservation()"
+  [nzOkLoading]="isSaving"
+  [nzWidth]="500"
+  nzMaskClosable="false"
+>
+  <div *nzModalContent>
+    <form nz-form [formGroup]="reservationForm" nzLayout="vertical">
+      
+      <nz-form-item>
+        <nz-form-label nzRequired>Sede / Predio</nz-form-label>
+        <nz-form-control nzErrorTip="Debe seleccionar la sede">
+          <nz-select formControlName="sit_uuid" nzPlaceHolder="Selecciona la sede física" nzShowSearch>
+            <nz-option 
+              *ngFor="let s of sites" 
+              [nzValue]="s.sit_uuid" 
+              [nzLabel]="s.sit_name"
+            ></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <nz-form-item>
+        <nz-form-label nzRequired>Espacio / Amenity</nz-form-label>
+        <nz-form-control nzErrorTip="Debe seleccionar el espacio a reservar">
+          <nz-select 
+            formControlName="spa_uuid" 
+            nzPlaceHolder="Selecciona el espacio" 
+            [nzDisabled]="!reservationForm.get('sit_uuid')?.value"
+            nzShowSearch
+          >
+            <nz-option 
+              *ngFor="let sp of spaces" 
+              [nzValue]="sp.spa_uuid" 
+              [nzLabel]="sp.spa_name"
+            ></nz-option>
+          </nz-select>
+        </nz-form-control>
+      </nz-form-item>
+
+      <!-- Información del espacio seleccionado -->
+      <div class="selected-space-info-card" *ngIf="selectedSpaceDetail">
+        <h4>Detalles del Espacio:</h4>
+        <div class="detail-row">
+          <span>Capacidad Máxima:</span>
+          <strong>{{ selectedSpaceDetail.spa_capacity || 'Sin límite' }} personas</strong>
+        </div>
+        <div class="detail-row">
+          <span>Costo de Reserva:</span>
+          <strong class="text-primary">{{ selectedSpaceDetail.spa_cost > 0 ? (selectedSpaceDetail.spa_cost | currency:'USD':'symbol':'1.2-2') : 'Gratuito' }}</strong>
+        </div>
+      </div>
+
+      <div class="form-row-half">
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Fecha</nz-form-label>
+          <nz-form-control nzErrorTip="Debe seleccionar la fecha">
+            <nz-date-picker 
+              formControlName="res_date" 
+              [nzDisabledDate]="disabledDate"
+              nzFormat="dd/MM/yyyy"
+              class="w-100"
+            ></nz-date-picker>
+          </nz-form-control>
+        </nz-form-item>
+
+        <nz-form-item class="form-half">
+          <nz-form-label nzRequired>Turno / Turno Horario</nz-form-label>
+          <nz-form-control nzErrorTip="Debe elegir un turno">
+            <nz-select formControlName="res_slot" nzPlaceHolder="Seleccionar turno">
+              <nz-option 
+                *ngFor="let slot of slots" 
+                [nzValue]="slot" 
+                [nzLabel]="slot"
+              ></nz-option>
+            </nz-select>
+          </nz-form-control>
+        </nz-form-item>
+      </div>
+
+    </form>
+  </div>
+</nz-modal>
