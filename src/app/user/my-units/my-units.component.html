@@ -26,8 +26,15 @@
 
         <div class="unit-details">
           <div class="detail-row">
-            <span class="detail-label"><nz-icon nzType="environment" /> Ubicación:</span>
+            <span class="detail-label"><nz-icon nzType="environment" /> Notas de Ubicación:</span>
             <span class="detail-value">{{ item.unitDetail?.uni_locationdetails || 'No especificada' }}</span>
+          </div>
+          <div class="detail-row" *ngIf="item.unitDetail && item.unitDetail.site">
+            <span class="detail-label"><nz-icon nzType="environment" /> Sede / Sector:</span>
+            <span class="detail-value">
+              {{ item.unitDetail.site.sit_name }}
+              <span *ngIf="item.unitDetail.space"> - {{ item.unitDetail.space.spa_name }}</span>
+            </span>
           </div>
           <div class="detail-row">
             <span class="detail-label"><nz-icon nzType="percentage" /> Coeficiente Expensas:</span>
