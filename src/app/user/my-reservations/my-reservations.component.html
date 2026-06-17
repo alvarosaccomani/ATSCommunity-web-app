@@ -167,6 +167,7 @@
                 *ngFor="let slot of slots" 
                 [nzValue]="slot" 
                 [nzLabel]="slot"
+                [nzDisabled]="isSlotDisabled(slot)"
               ></nz-option>
             </nz-select>
           </nz-form-control>

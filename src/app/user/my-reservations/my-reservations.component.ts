@@ -77,6 +77,38 @@ export class MyReservationsComponent implements OnInit {
     return current < today;
   };
 
+  public isSlotDisabled(slot: string): boolean {
+    const selectedDate = this.reservationForm.get('res_date')?.value;
+    if (!selectedDate) {
+      return false;
+    }
+
+    const today = new Date();
+    const selDateObj = new Date(selectedDate);
+
+    const isToday = selDateObj.getFullYear() === today.getFullYear() &&
+                    selDateObj.getMonth() === today.getMonth() &&
+                    selDateObj.getDate() === today.getDate();
+
+    if (!isToday) {
+      return false;
+    }
+
+    const startTimeStr = slot.split(' - ')[0];
+    const [startHour, startMin] = startTimeStr.split(':').map(Number);
+
+    const currentHour = today.getHours();
+    const currentMin = today.getMinutes();
+
+    if (currentHour > startHour) {
+      return true;
+    } else if (currentHour === startHour) {
+      return currentMin >= startMin;
+    }
+
+    return false;
+  }
+
   constructor(
     private fb: FormBuilder,
     private reservationsService: ReservationsService,
@@ -126,6 +158,15 @@ export class MyReservationsComponent implements OnInit {
         this.selectedSpaceDetail = this.spaces.find(s => s.spa_uuid === spaUuid) || null;
       } else {
         this.selectedSpaceDetail = null;
+      }
+    });
+
+    // Listen to date changes to reset slot if it becomes disabled
+    this.reservationForm.get('res_date')?.valueChanges.subscribe(date => {
+      const slotControl = this.reservationForm.get('res_slot');
+      const currentSlot = slotControl?.value;
+      if (date && currentSlot && this.isSlotDisabled(currentSlot)) {
+        slotControl?.setValue('');
       }
     });
   }
